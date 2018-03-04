@@ -12,6 +12,8 @@ package proyectocompi;
 	String string = "";
 %}
 
+BooleanValue = "true" | "false"  
+Then = "then"
 Call = "call"
 beginCom = "/%"
 endCom = "%/"
@@ -22,7 +24,7 @@ Endcase = "endcase"
 Default = "default"
 While = "while"
 Apostrophe = "'"
-spaces = (" " | "\n" | "\t")*
+spaces = (" " | "\n" | "\t")+
 endOfLine = ";"
 leftBracket = "["
 rightBracket = "]"
@@ -40,11 +42,11 @@ Main = "main"
 Switch = "switch"
 Case = "case"
 Return = "return"
-Type = ("int" | "boolean" | "char")
+Type = ("int" | "boolean" | "char" | "string")
 ArithmeticOperator = "+"|"-"|"*"|"/"
 RelationalOperator = "=="|"<="|">="|"<"|">"|"!="
 AssignmentOperator = ":=" | "+=" | "-=" | "*=" | "/="
-Number = [:digit:]*
+Number = [:digit:]+
 VariableName = [:letter:]([:letter:]|[:digit:])*
 
 %state COMMENT
@@ -52,6 +54,8 @@ VariableName = [:letter:]([:letter:]|[:digit:])*
 %%
 
 <YYINITIAL>{
+        {BooleanValue}  {System.out.println("Boolean: " + yytext());}
+        {Then}  {System.out.println("Then: " + yytext());}
 	{Call}	{System.out.println("Call: " + yytext());}
 	{Write}	{System.out.println("Write: " + yytext());}
 	{Read}	{System.out.println("Read: " + yytext());}
