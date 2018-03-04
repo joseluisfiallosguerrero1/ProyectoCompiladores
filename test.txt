@@ -1,0 +1,22 @@
+main(){?
+	int hola;?
+	char a := 'q';
+	a := a+1;
+	a1 += 3;
+	while(true){
+
+	}
+
+	for(true){
+
+	}
+
+	if(true) then
+	elseif(false) then 
+	endif
+
+	while(a == 1){
+		write('Holis');
+	}
+	return 0;
+}/%Hjdnjdnfbbfhdbfhdbfhbdhfbhdbfhdbsvgddvgsvdsvvdgsvdgdvd%/
