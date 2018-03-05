@@ -939,7 +939,7 @@ class Lexer implements java_cup.runtime.Scanner {
             }
           case 57: break;
           case 14: 
-            { System.out.println("RelOP "+ yytext());
+            { return token(sym.RelationalOperator,new String(yytext()));
             }
           case 58: break;
           case 15: 
@@ -978,7 +978,7 @@ class Lexer implements java_cup.runtime.Scanner {
             }
           case 66: break;
           case 23: 
-            { System.out.println("If "+ yytext());
+            { return token(sym.If);
             }
           case 67: break;
           case 24: 
@@ -1009,7 +1009,7 @@ class Lexer implements java_cup.runtime.Scanner {
             }
           case 73: break;
           case 30: 
-            { System.out.println("Then: " + yytext());
+            { return token(sym.Then);
             }
           case 74: break;
           case 31: 
@@ -1017,7 +1017,7 @@ class Lexer implements java_cup.runtime.Scanner {
             }
           case 75: break;
           case 32: 
-            { System.out.println("Else "+ yytext());
+            { return token(sym.Else);
             }
           case 76: break;
           case 33: 
@@ -1033,7 +1033,7 @@ class Lexer implements java_cup.runtime.Scanner {
             }
           case 79: break;
           case 36: 
-            { System.out.println("EndIf "+ yytext());
+            { return token(sym.Endif);
             }
           case 80: break;
           case 37: 
@@ -1049,7 +1049,7 @@ class Lexer implements java_cup.runtime.Scanner {
             }
           case 83: break;
           case 40: 
-            { System.out.println("ElseIf "+ yytext());
+            { return token(sym.Elseif);
             }
           case 84: break;
           case 41: 

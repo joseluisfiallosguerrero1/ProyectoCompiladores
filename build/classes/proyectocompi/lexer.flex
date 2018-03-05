@@ -73,7 +73,7 @@ VariableName = [:letter:]([:letter:]|[:digit:])*
 	{And}			{return token(sym.And);}
 	{Or}			{return token(sym.Or);}
     {BooleanValue}  {return token(sym.BooleanValue, new String(yytext()));}
-    {Then}  {System.out.println("Then: " + yytext());}
+    {Then}  {return token(sym.Then);}
 	{Call}	{System.out.println("Call: " + yytext());}
 	{Write}	{System.out.println("Write: " + yytext());}
 	{Read}	{System.out.println("Read: " + yytext());}
@@ -86,10 +86,10 @@ VariableName = [:letter:]([:letter:]|[:digit:])*
 	{Apostrophe}	{System.out.println("Apostrophe "+ yytext());
 					string = "";
 					yybegin(STRING);}
-	{If}	{System.out.println("If "+ yytext());}
-	{Endif}	{System.out.println("EndIf "+ yytext());}
-	{Elseif}	{System.out.println("ElseIf "+ yytext());}
-	{Else}		{System.out.println("Else "+ yytext());}
+	{If}	{return token(sym.If);}
+	{Endif}	{return token(sym.Endif);}
+	{Elseif}	{return token(sym.Elseif);}
+	{Else}		{return token(sym.Else);}
 	{For}		{System.out.println("For "+ yytext());}
 	{Main}		{System.out.println("Main "+ yytext());}
 	{Switch}		{System.out.println("Switch "+ yytext());}
@@ -113,7 +113,7 @@ VariableName = [:letter:]([:letter:]|[:digit:])*
 							}else if("/".equals(yytext())){
 								return token(sym.DivOP);
 							}}
-	{RelationalOperator}		{System.out.println("RelOP "+ yytext());}
+	{RelationalOperator}		{return token(sym.RelationalOperator,new String(yytext()));}
 	{AssignmentOperator}		{return token(sym.AssignmentOperator, new String(yytext()));}
 	{Number}					{return token(sym.Number, new String(yytext()));}
 	{VariableName}				{return token(sym.VariableName,new String(yytext()));}

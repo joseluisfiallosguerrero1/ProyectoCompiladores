@@ -7,10 +7,17 @@ parser code{:
 
 terminal Number;
 terminal String VariableName, BooleanValue, Type, MultOP, DivOP, AddOP, SubOP, AssignmentOperator, 
-                EOL, STRING, Delimeter, leftParenthesis, rightParenthesis,ThreePoints,And,Or;
+                EOL, STRING, Delimeter, leftParenthesis, rightParenthesis,ThreePoints,And,Or,RelationalOperator,
+                If,Elseif,Endif,Else,Then;
 
-non terminal String leftValue, Assignment,MultipleAssignment,Declaration, AddSub,MultDiv,ArithmeticOperation;
+non terminal String leftValue, Assignment,MultipleAssignment,Declaration, AddSub,MultDiv,ArithmeticOperation, Comparison,
+					MultipleComparison, AndOr, IF, ELSEIF;
 
+
+/*Gramatica para if*/
+IF ::= If leftParenthesis Comparison rightParenthesis Then IF ELSEIF Endif |;
+ELSEIF ::= Elseif leftParenthesis Comparison rightParenthesis Then IF ELSEIF | Else IF |;
+ 
 /*Gramatica para declaraciones y asignaciones*/
 Declaration ::= Type Assignment EOL;
 Assignment ::= VariableName AssignmentOperator leftValue MultipleAssignment|VariableName MultipleAssignment;
@@ -22,7 +29,12 @@ AddSub ::= AddSub AddOP MultDiv | AddSub SubOP MultDiv | MultDiv;
 MultDiv ::= MultDiv MultOP ArithmeticOperation | MultDiv DivOP ArithmeticOperation | ArithmeticOperation;  
 ArithmeticOperation ::= VariableName | Number | leftParenthesis AddSub rightParenthesis;
 
-/*Gramatica para if*/
+/*Gramatica para comparaciones*/
+Comparison ::= leftValue RelationalOperator leftValue MultipleComparison;
+MultipleComparison ::= AndOr Comparison|;
+AndOr ::= And|Or;
+
+
 
 /*Gramatica para for*/
 

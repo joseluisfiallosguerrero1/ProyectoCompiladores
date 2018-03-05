@@ -25,6 +25,7 @@ public class ProyectoCompi {
      */
     public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
         // TODO code application logic here
+       
         Scanner rd = new Scanner(System.in);
         System.out.println("1. Generar");
         System.out.println("2. Ejecutar");

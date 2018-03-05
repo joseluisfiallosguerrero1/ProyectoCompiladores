@@ -1,1 +1,22 @@
-int variable := 12,variable2 :=13,variable3 := (2+a);
+if(1==2) then
+	if(1==2) then
+
+	elseif(1!=2) then
+
+	else 
+	endif
+elseif(1!=2) then
+	if(1==2) then
+
+	elseif(1!=2) then
+
+	else 
+	endif
+else
+	if(1==2) then
+
+	elseif(1!=2) then
+
+	else 
+	endif 
+endif
