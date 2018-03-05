@@ -14,7 +14,7 @@ non terminal String leftValue, Assignment,MultipleAssignment,Declaration;
 /*Gramatica para declaraciones y asignaciones*/
 Declaration ::= Type Spaces Assignment EOL;
 Assignment ::= VariableName Spaces AssignmentOperator Spaces leftValue MultipleAssignment|VariableName MultipleAssignment;
-MultipleAssignment ::= Delimeter Spaces Assignment|"";
+MultipleAssignment ::= Delimeter Spaces Assignment|;
 leftValue ::= Number|BooleanValue|STRING;
 
 /*Gramatica para operaciones matematicas*/

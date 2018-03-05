@@ -5,6 +5,8 @@
         <group>
             <file>file:/C:/Users/Usuario/Documents/Periodo%20I%202018/Compiladores%20I/ProyectoCompiladores/src/proyectocompi/ProyectoCompi.java</file>
             <file>file:/C:/Users/Usuario/Documents/Periodo%20I%202018/Compiladores%20I/ProyectoCompiladores/src/proyectocompi/lexer.flex</file>
+            <file>file:/C:/Users/Usuario/Documents/Periodo%20I%202018/Compiladores%20I/ProyectoCompiladores/src/proyectocompi/Lexer.java</file>
+            <file>file:/C:/Users/Usuario/Documents/Periodo%20I%202018/Compiladores%20I/ProyectoCompiladores/src/proyectocompi/ASintactico.cup</file>
         </group>
     </open-files>
 </project-private>
