@@ -7,14 +7,14 @@ parser code{:
 
 terminal Number;
 terminal String VariableName, BooleanValue, Type, ArithmeticOperator, AssignmentOperator, 
-                EOL, STRING, Spaces,Delimeter;
+                EOL, STRING, Delimeter;
 
 non terminal String leftValue, Assignment,MultipleAssignment,Declaration;
 
 /*Gramatica para declaraciones y asignaciones*/
-Declaration ::= Type Spaces Assignment EOL;
-Assignment ::= VariableName Spaces AssignmentOperator Spaces leftValue MultipleAssignment|VariableName MultipleAssignment;
-MultipleAssignment ::= Delimeter Spaces Assignment|;
+Declaration ::= Type Assignment EOL;
+Assignment ::= VariableName AssignmentOperator leftValue MultipleAssignment|VariableName MultipleAssignment;
+MultipleAssignment ::= Delimeter Assignment|;
 leftValue ::= Number|BooleanValue|STRING;
 
 /*Gramatica para operaciones matematicas*/

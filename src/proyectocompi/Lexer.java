@@ -867,7 +867,7 @@ class Lexer implements java_cup.runtime.Scanner {
       else {
         switch (zzAction < 0 ? zzAction : ZZ_ACTION[zzAction]) {
           case 1: 
-            { return token(sym.Spaces);
+            { 
             }
           case 42: break;
           case 2: 

@@ -96,7 +96,7 @@ VariableName = [:letter:]([:letter:]|[:digit:])*
 	{rightKey}	{System.out.println("rightKey "+ yytext());}
 	{leftBracket}	{System.out.println("leftBrack "+ yytext());}
 	{rightBracket}	{System.out.println("rightBrack "+ yytext());}
-	{spaces}	{return token(sym.Spaces);}
+	{spaces}	{}
 	{Type}			{return token(sym.Type,new String(yytext()));}
 	{ArithmeticOperator}	{return token(sym.ArithmeticOperator, new String(yytext()));}
 	{RelationalOperator}		{System.out.println("RelOP "+ yytext());}
