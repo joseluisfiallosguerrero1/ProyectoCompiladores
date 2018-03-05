@@ -5,10 +5,14 @@
  */
 package proyectocompi;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.UnsupportedEncodingException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Scanner;
+import java_cup.runtime.*;
 
 /**
  *
@@ -28,8 +32,11 @@ public class ProyectoCompi {
 
         if (opcion == 1) {
             generateLexer();
+            generateParser();
+            moveFile("AnalizadorSintactico.java");
+            moveFile("sym.java");
         } else if (opcion == 2) {
-            runLexer();
+            runParser();
         }
 
     }
@@ -42,20 +49,56 @@ public class ProyectoCompi {
 
         try {
             jflex.Main.generate(params);
-            System.out.println("Se genero");
+            System.out.println("Se genero lexer");
         } catch (Exception e) {
         }
     }
 
-    public static void runLexer() throws FileNotFoundException {
-        FileReader reader = new FileReader("test.txt");
-        Lexer lexer = new Lexer(reader);
+    public static void generateParser() {
+        String[] params2 = new String[3];
+        params2[0] = "-parser";
+        params2[1] = "AnalizadorSintactico";
+        params2[2] = "src/proyectocompi/Asintactico.cup";
 
         try {
-            while (!lexer.zzAtEOF) {
-                lexer.yylex();
-            }
+            java_cup.Main.main(params2);
+            System.out.println("Se genero el Parser");
         } catch (Exception e) {
+        }
+    }
+    
+    public static boolean moveFile(String archNombre) {
+        boolean efectuado = false;
+        File arch = new File(archNombre);
+        if (arch.exists()) {
+            System.out.println("\n*** Moviendo " + arch + " \n***");
+            Path currentRelativePath = Paths.get("");
+            String nuevoDir = currentRelativePath.toAbsolutePath().toString()
+                    + File.separator + "src" + File.separator
+                    + "proyectocompi" + File.separator + arch.getName();
+            File archViejo = new File(nuevoDir);
+            archViejo.delete();
+            if (arch.renameTo(new File(nuevoDir))) {
+                System.out.println("\n*** Generado " + archNombre + "***\n");
+                efectuado = true;
+            } else {
+                System.out.println("\n*** No movido " + archNombre + " ***\n");
+            }
+        } else {
+            System.out.println("\n*** Codigo no existente ***\n");
+        }
+        return efectuado;
+    }
+
+    public static void runParser() throws FileNotFoundException {
+        Lexer lexer = new Lexer(new FileReader("test.txt"));
+        AnalizadorSintactico parser = new AnalizadorSintactico(lexer);
+
+        try {
+            Object result = parser.parse().value;
+            System.out.println("Parseado correctamente");
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }

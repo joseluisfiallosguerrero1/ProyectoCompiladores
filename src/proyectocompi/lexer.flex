@@ -1,15 +1,27 @@
 package proyectocompi;
+import java_cup.runtime.*;
+
 %%
 %class Lexer
 %unicode
 %int
 %line
 %column
+%cup
 %standalone
+
 
 %{
 	String comment = "";
 	String string = "";
+        
+        public Symbol token(int type){
+            return new Symbol(type,yyline,yycolumn);
+        }
+
+        public Symbol token(int type,Object value){
+            return new Symbol(type,yyline,yycolumn,value);
+        }
 %}
 
 BooleanValue = "true" | "false"  
@@ -24,7 +36,7 @@ Endcase = "endcase"
 Default = "default"
 While = "while"
 Apostrophe = "'"
-spaces = (" " | "\n" | "\t")+
+spaces = (" " | "\n" | "\t")*
 endOfLine = ";"
 leftBracket = "["
 rightBracket = "]"
@@ -54,7 +66,7 @@ VariableName = [:letter:]([:letter:]|[:digit:])*
 %%
 
 <YYINITIAL>{
-        {BooleanValue}  {System.out.println("Boolean: " + yytext());}
+        {BooleanValue}  {return token(sym.BooleanValue, new String(yytext()));}
         {Then}  {System.out.println("Then: " + yytext());}
 	{Call}	{System.out.println("Call: " + yytext());}
 	{Write}	{System.out.println("Write: " + yytext());}
@@ -77,22 +89,23 @@ VariableName = [:letter:]([:letter:]|[:digit:])*
 	{Switch}		{System.out.println("Switch "+ yytext());}
 	{Case}		{System.out.println("Case "+ yytext());}
 	{Return}	{System.out.println("Return "+ yytext());}
-	{Delimeter}	{System.out.println("Delimeter "+ yytext());}
+	{Delimeter}	{return token(sym.Delimeter);}
 	{leftParenthesis}	{System.out.println("leftPar "+ yytext());}
 	{rightParenthesis}	{System.out.println("rightPar "+ yytext());}
 	{leftKey}	{System.out.println("leftKkey "+ yytext());}
 	{rightKey}	{System.out.println("rightKey "+ yytext());}
 	{leftBracket}	{System.out.println("leftBrack "+ yytext());}
 	{rightBracket}	{System.out.println("rightBrack "+ yytext());}
-	{spaces}	{}
-	{Type}			{System.out.println("Type "+ yytext());}
-	{ArithmeticOperator}	{System.out.println("ArOP "+ yytext());}
+	{spaces}	{return token(sym.Spaces);}
+	{Type}			{return token(sym.Type,new String(yytext()));}
+	{ArithmeticOperator}	{return token(sym.ArithmeticOperator, new String(yytext()));}
 	{RelationalOperator}		{System.out.println("RelOP "+ yytext());}
-	{AssignmentOperator}		{System.out.println("AsOP "+ yytext());}
-	{Number}					{System.out.println("Number " + yytext());}
-	{VariableName}				{System.out.println("VariableName "+ yytext());}
-	{endOfLine}					{System.out.println("Endline " + yytext());}
+	{AssignmentOperator}		{return token(sym.AssignmentOperator, new String(yytext()));}
+	{Number}					{return token(sym.Number, new String(yytext()));}
+	{VariableName}				{return token(sym.VariableName,new String(yytext()));}
+	{endOfLine}					{return token(sym.EOL);}
 	.				{System.out.println("Error en la linea: " + (yyline + 1) + " columna " + (yycolumn+1) + " Character Not Found: " + yytext());}
+        <<EOF>> {System.exit(0);}
 }
 
 <COMMENT>{
@@ -103,8 +116,8 @@ VariableName = [:letter:]([:letter:]|[:digit:])*
 	.			{comment+=yytext();}
 }
 <STRING>{
-	{Apostrophe}	{System.out.println("String: " + string);
-					System.out.println("Apostrophe: " + yytext());
-					yybegin(YYINITIAL);}
+	{Apostrophe}	{System.out.println("Apostrophe: " + yytext());
+			yybegin(YYINITIAL);
+                        return token(sym.STRING,string);}
 	.				{string+=yytext();}				
 }
