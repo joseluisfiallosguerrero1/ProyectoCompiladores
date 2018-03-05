@@ -6,18 +6,21 @@ parser code{:
 :};
 
 terminal Number;
-terminal String VariableName, BooleanValue, Type, ArithmeticOperator, AssignmentOperator, 
-                EOL, STRING, Delimeter;
+terminal String VariableName, BooleanValue, Type, MultOP, DivOP, AddOP, SubOP, AssignmentOperator, 
+                EOL, STRING, Delimeter, leftParenthesis, rightParenthesis,ThreePoints,And,Or;
 
-non terminal String leftValue, Assignment,MultipleAssignment,Declaration;
+non terminal String leftValue, Assignment,MultipleAssignment,Declaration, AddSub,MultDiv,ArithmeticOperation;
 
 /*Gramatica para declaraciones y asignaciones*/
 Declaration ::= Type Assignment EOL;
 Assignment ::= VariableName AssignmentOperator leftValue MultipleAssignment|VariableName MultipleAssignment;
 MultipleAssignment ::= Delimeter Assignment|;
-leftValue ::= Number|BooleanValue|STRING;
+leftValue ::= AddSub|BooleanValue|STRING;
 
 /*Gramatica para operaciones matematicas*/
+AddSub ::= AddSub AddOP MultDiv | AddSub SubOP MultDiv | MultDiv;
+MultDiv ::= MultDiv MultOP ArithmeticOperation | MultDiv DivOP ArithmeticOperation | ArithmeticOperation;  
+ArithmeticOperation ::= VariableName | Number | leftParenthesis AddSub rightParenthesis;
 
 /*Gramatica para if*/
 

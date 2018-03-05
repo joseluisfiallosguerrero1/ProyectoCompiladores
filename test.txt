@@ -1,1 +1,1 @@
-int variable := 12,variable2 :=13,variable3;
+int variable := 12,variable2 :=13,variable3 := (2+a);

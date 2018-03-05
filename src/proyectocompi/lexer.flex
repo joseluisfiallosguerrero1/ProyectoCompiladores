@@ -24,6 +24,9 @@ import java_cup.runtime.*;
         }
 %}
 
+ThreePoints = "..."
+And = "AND"
+Or = "OR"
 BooleanValue = "true" | "false"  
 Then = "then"
 Call = "call"
@@ -66,8 +69,11 @@ VariableName = [:letter:]([:letter:]|[:digit:])*
 %%
 
 <YYINITIAL>{
-        {BooleanValue}  {return token(sym.BooleanValue, new String(yytext()));}
-        {Then}  {System.out.println("Then: " + yytext());}
+	{ThreePoints}	{return token(sym.ThreePoints);}
+	{And}			{return token(sym.And);}
+	{Or}			{return token(sym.Or);}
+    {BooleanValue}  {return token(sym.BooleanValue, new String(yytext()));}
+    {Then}  {System.out.println("Then: " + yytext());}
 	{Call}	{System.out.println("Call: " + yytext());}
 	{Write}	{System.out.println("Write: " + yytext());}
 	{Read}	{System.out.println("Read: " + yytext());}
@@ -90,15 +96,23 @@ VariableName = [:letter:]([:letter:]|[:digit:])*
 	{Case}		{System.out.println("Case "+ yytext());}
 	{Return}	{System.out.println("Return "+ yytext());}
 	{Delimeter}	{return token(sym.Delimeter);}
-	{leftParenthesis}	{System.out.println("leftPar "+ yytext());}
-	{rightParenthesis}	{System.out.println("rightPar "+ yytext());}
+	{leftParenthesis}	{return token(sym.leftParenthesis);}
+	{rightParenthesis}	{return token(sym.rightParenthesis);}
 	{leftKey}	{System.out.println("leftKkey "+ yytext());}
 	{rightKey}	{System.out.println("rightKey "+ yytext());}
 	{leftBracket}	{System.out.println("leftBrack "+ yytext());}
 	{rightBracket}	{System.out.println("rightBrack "+ yytext());}
 	{spaces}	{}
 	{Type}			{return token(sym.Type,new String(yytext()));}
-	{ArithmeticOperator}	{return token(sym.ArithmeticOperator, new String(yytext()));}
+	{ArithmeticOperator}	{if("+".equals(yytext())){
+								return token(sym.AddOP);
+							}else if("-".equals(yytext())){
+								return token(sym.SubOP);
+							}else if("*".equals(yytext())){
+								return token(sym.MultOP);
+							}else if("/".equals(yytext())){
+								return token(sym.DivOP);
+							}}
 	{RelationalOperator}		{System.out.println("RelOP "+ yytext());}
 	{AssignmentOperator}		{return token(sym.AssignmentOperator, new String(yytext()));}
 	{Number}					{return token(sym.Number, new String(yytext()));}
