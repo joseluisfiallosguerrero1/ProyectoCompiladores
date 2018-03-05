@@ -6,23 +6,25 @@ parser code{:
 :};
 
 terminal Number;
-terminal String VariableName, BooleanValue, Type, MultOP, DivOP, AddOP, SubOP, AssignmentOperator, 
-                EOL, STRING, Delimeter, leftParenthesis, rightParenthesis,ThreePoints,And,Or,RelationalOperator,
+terminal String VariableName, BooleanValue, Type, MultOP, DivOP, AddOP, SubOP, Assign, PlusEqual,MinusEqual,MultEqual,DivEqual, 
+                EOL, STRING, Delimeter, leftParenthesis, rightParenthesis,ThreePoints,And,Or,Equal,NotEqual,GreaterThan,
+                LessThan,GreaterEqual,LessEqual,
                 If,Elseif,Endif,Else,Then;
 
 non terminal String leftValue, Assignment,MultipleAssignment,Declaration, AddSub,MultDiv,ArithmeticOperation, Comparison,
-					MultipleComparison, AndOr, IF, ELSEIF;
+					MultipleComparison, AndOr, IF, ELSEIF, RelationalOperator,AssignmentOperator;
 
 
 /*Gramatica para if*/
 IF ::= If leftParenthesis Comparison rightParenthesis Then IF ELSEIF Endif |;
 ELSEIF ::= Elseif leftParenthesis Comparison rightParenthesis Then IF ELSEIF | Else IF |;
- 
+
 /*Gramatica para declaraciones y asignaciones*/
 Declaration ::= Type Assignment EOL;
 Assignment ::= VariableName AssignmentOperator leftValue MultipleAssignment|VariableName MultipleAssignment;
 MultipleAssignment ::= Delimeter Assignment|;
 leftValue ::= AddSub|BooleanValue|STRING;
+AssignmentOperator ::= Assign | PlusEqual | MinusEqual | MultEqual | DivEqual;
 
 /*Gramatica para operaciones matematicas*/
 AddSub ::= AddSub AddOP MultDiv | AddSub SubOP MultDiv | MultDiv;
@@ -33,8 +35,7 @@ ArithmeticOperation ::= VariableName | Number | leftParenthesis AddSub rightPare
 Comparison ::= leftValue RelationalOperator leftValue MultipleComparison;
 MultipleComparison ::= AndOr Comparison|;
 AndOr ::= And|Or;
-
-
+RelationalOperator ::= Equal | NotEqual | GreaterThan | LessThan | GreaterEqual | LessEqual;
 
 /*Gramatica para for*/
 

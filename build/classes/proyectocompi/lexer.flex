@@ -113,8 +113,34 @@ VariableName = [:letter:]([:letter:]|[:digit:])*
 							}else if("/".equals(yytext())){
 								return token(sym.DivOP);
 							}}
-	{RelationalOperator}		{return token(sym.RelationalOperator,new String(yytext()));}
-	{AssignmentOperator}		{return token(sym.AssignmentOperator, new String(yytext()));}
+	{RelationalOperator}		{	if("==".equals(yytext())){
+										return token(sym.Equal);
+									}else if("!=".equals(yytext())){
+										return token(sym.NotEqual);
+									}else if(">".equals(yytext())){
+										return token(sym.GreaterThan);
+									}else if("<".equals(yytext())){
+										return token(sym.LessThan);
+									}else if(">=".equals(yytext())){
+										return token(sym.GreaterEqual);
+									}else if("<=".equals(yytext())){
+										return token(sym.LessEqual);
+									} 
+									
+								}
+	{AssignmentOperator}		{
+									if(":=".equals(yytext())){
+										return token(sym.Assign);
+									}else if("+=".equals(yytext())){
+										return token(sym.PlusEqual);
+									}else if("-=".equals(yytext())){
+										return token(sym.MinusEqual);
+									}else if("*=".equals(yytext())){
+										return token(sym.MultEqual);
+									}else if("/=".equals(yytext())){
+										return token(sym.DivEqual);
+									}
+								}
 	{Number}					{return token(sym.Number, new String(yytext()));}
 	{VariableName}				{return token(sym.VariableName,new String(yytext()));}
 	{endOfLine}					{return token(sym.EOL);}

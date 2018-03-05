@@ -939,7 +939,19 @@ class Lexer implements java_cup.runtime.Scanner {
             }
           case 57: break;
           case 14: 
-            { return token(sym.RelationalOperator,new String(yytext()));
+            { if("==".equals(yytext())){
+										return token(sym.Equal);
+									}else if("!=".equals(yytext())){
+										return token(sym.NotEqual);
+									}else if(">".equals(yytext())){
+										return token(sym.GreaterThan);
+									}else if("<".equals(yytext())){
+										return token(sym.LessThan);
+									}else if(">=".equals(yytext())){
+										return token(sym.GreaterEqual);
+									}else if("<=".equals(yytext())){
+										return token(sym.LessEqual);
+									}
             }
           case 58: break;
           case 15: 
@@ -974,7 +986,17 @@ class Lexer implements java_cup.runtime.Scanner {
             }
           case 65: break;
           case 22: 
-            { return token(sym.AssignmentOperator, new String(yytext()));
+            { if(":=".equals(yytext())){
+										return token(sym.Assign);
+									}else if("+=".equals(yytext())){
+										return token(sym.PlusEqual);
+									}else if("-=".equals(yytext())){
+										return token(sym.MinusEqual);
+									}else if("*=".equals(yytext())){
+										return token(sym.MultEqual);
+									}else if("/=".equals(yytext())){
+										return token(sym.DivEqual);
+									}
             }
           case 66: break;
           case 23: 
