@@ -9,11 +9,16 @@ terminal Number;
 terminal String VariableName, BooleanValue, Type, MultOP, DivOP, AddOP, SubOP, Assign, PlusEqual,MinusEqual,MultEqual,DivEqual, 
                 EOL, STRING, Delimeter, leftParenthesis, rightParenthesis,ThreePoints,And,Or,Equal,NotEqual,GreaterThan,
                 LessThan,GreaterEqual,LessEqual,
-                If,Elseif,Endif,Else,Then;
+                If,Elseif,Endif,Else,Then,
+                Case, Endcase,Default,LeftKey,RightKey,Switch,TwoPoints;
 
 non terminal String leftValue, Assignment,MultipleAssignment,Declaration, AddSub,MultDiv,ArithmeticOperation, Comparison,
-					MultipleComparison, AndOr, IF, ELSEIF, RelationalOperator,AssignmentOperator;
+					MultipleComparison, AndOr, IF, ELSEIF, RelationalOperator,AssignmentOperator, SWITCH,CASE;
 
+
+/*Gramatica para switch*/
+SWITCH ::= Switch leftParenthesis VariableName rightParenthesis LeftKey CASE Case Default TwoPoints Endcase EOL RightKey|;
+CASE ::= CASE Case leftValue TwoPoints SWITCH Endcase EOL|;
 
 /*Gramatica para if*/
 IF ::= If leftParenthesis Comparison rightParenthesis Then IF ELSEIF Endif |;
@@ -40,8 +45,6 @@ RelationalOperator ::= Equal | NotEqual | GreaterThan | LessThan | GreaterEqual 
 /*Gramatica para for*/
 
 /*Gramatica para while*/
-
-/*Gramatica para switch*/
 
 /*Gramatica para funciones*/
 

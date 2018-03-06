@@ -24,6 +24,7 @@ import java_cup.runtime.*;
         }
 %}
 
+TwoPoints = ":"
 ThreePoints = "..."
 And = "AND"
 Or = "OR"
@@ -69,6 +70,7 @@ VariableName = [:letter:]([:letter:]|[:digit:])*
 %%
 
 <YYINITIAL>{
+	{TwoPoints}		{return token(sym.TwoPoints);}
 	{ThreePoints}	{return token(sym.ThreePoints);}
 	{And}			{return token(sym.And);}
 	{Or}			{return token(sym.Or);}
@@ -80,8 +82,8 @@ VariableName = [:letter:]([:letter:]|[:digit:])*
 	{beginCom}	{System.out.println("Inicio de Comentario: " + yytext());
 				yybegin(COMMENT);}
 	{Function}	{System.out.println("Function: " + yytext());}
-	{Endcase}	{System.out.println("Endcase: " + yytext());}
-	{Default}	{System.out.println("Default: " + yytext());}
+	{Endcase}	{return token(sym.Endcase);}
+	{Default}	{return token(sym.Default);}
 	{While}	{System.out.println("While " + yytext());}
 	{Apostrophe}	{System.out.println("Apostrophe "+ yytext());
 					string = "";
@@ -92,14 +94,14 @@ VariableName = [:letter:]([:letter:]|[:digit:])*
 	{Else}		{return token(sym.Else);}
 	{For}		{System.out.println("For "+ yytext());}
 	{Main}		{System.out.println("Main "+ yytext());}
-	{Switch}		{System.out.println("Switch "+ yytext());}
-	{Case}		{System.out.println("Case "+ yytext());}
+	{Switch}		{return token(sym.Switch);}
+	{Case}		{return token(sym.Case);}
 	{Return}	{System.out.println("Return "+ yytext());}
 	{Delimeter}	{return token(sym.Delimeter);}
 	{leftParenthesis}	{return token(sym.leftParenthesis);}
 	{rightParenthesis}	{return token(sym.rightParenthesis);}
-	{leftKey}	{System.out.println("leftKkey "+ yytext());}
-	{rightKey}	{System.out.println("rightKey "+ yytext());}
+	{leftKey}	{return token(sym.LeftKey);}
+	{rightKey}	{return token(sym.RightKey);}
 	{leftBracket}	{System.out.println("leftBrack "+ yytext());}
 	{rightBracket}	{System.out.println("rightBrack "+ yytext());}
 	{spaces}	{}
