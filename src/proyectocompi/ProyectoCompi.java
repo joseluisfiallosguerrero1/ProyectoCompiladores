@@ -25,12 +25,11 @@ public class ProyectoCompi {
      */
     public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
         // TODO code application logic here
-       
         Scanner rd = new Scanner(System.in);
         System.out.println("1. Generar");
         System.out.println("2. Ejecutar");
         int opcion = rd.nextInt();
-
+        
         if (opcion == 1) {
             generateLexer();
             generateParser();
@@ -39,9 +38,13 @@ public class ProyectoCompi {
         } else if (opcion == 2) {
             runParser();
         }
-
+        
+      
     }
 
+    public static int sum(){
+        return 1;
+    }
     public static void generateLexer() {
         String[] params = new String[3];
         params[0] = "-d";

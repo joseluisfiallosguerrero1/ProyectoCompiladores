@@ -96,7 +96,7 @@ VariableName = [:letter:]([:letter:]|[:digit:])*
 	{Main}		{return token(sym.Main);}
 	{Switch}		{return token(sym.Switch);}
 	{Case}		{return token(sym.Case);}
-	{Return}	{System.out.println("Return "+ yytext());}
+	{Return}	{return token(sym.Return);}
 	{Delimeter}	{return token(sym.Delimeter);}
 	{leftParenthesis}	{return token(sym.leftParenthesis);}
 	{rightParenthesis}	{return token(sym.rightParenthesis);}
