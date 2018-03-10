@@ -6,20 +6,29 @@ parser code{:
 :};
 
 terminal Number;
-terminal String VariableName, BooleanValue, Type, MultOP, DivOP, AddOP, SubOP, Assign, PlusEqual,MinusEqual,MultEqual,DivEqual, 
-                EOL, STRING, Delimeter, leftParenthesis, rightParenthesis,ThreePoints,And,Or,Equal,NotEqual,GreaterThan,
-                LessThan,GreaterEqual,LessEqual,
-                If,Elseif,Endif,Else,Then,
-                Case, Endcase,Default,LeftKey,RightKey,Switch,TwoPoints,Function,Call,Main,Return;
+terminal String VariableName, BooleanValue, Type, STRING, // Tokens para declaraciones y asignaciones 
+				MultOP, DivOP, AddOP, SubOP, //Tokens de operadores aritmeticos
+				Assign, PlusEqual,MinusEqual,MultEqual,DivEqual, //Tokens de asignacion
+				And, Or, Equal, NotEqual, GreaterThan, LessThan,GreaterEqual, LessEqual, // Tokens relacionales
+                If, Elseif, Endif, Else, Then, //Tokens para if
+                Case, Endcase,Default, Switch, //Tokens para Switch
+                Function, Call,Return, //Tokens para funciones
+                EOL, Delimeter, leftParenthesis, rightParenthesis, ThreePoints, LeftKey, RightKey, TwoPoints,//Simbolos
+                Main;//Main
 
-non terminal String leftValue, Assignment,MultipleAssignment,Declaration, AddSub,MultDiv,ArithmeticOperation, Comparison,
-					MultipleComparison, AndOr, IF, ELSEIF, RelationalOperator,AssignmentOperator, SWITCH,CASE,FUNCTION,Params,
-					MultipleParams,ParamsOrEmpty,CALL, CallParams, CallMultipleParams,CallParamsOrEmpty,BODY,MAIN,PROGRAM,
-					SingleAssignment, RETURN, CaseValues;
+non terminal String leftValue, Assignment, SingleAssignment, MultipleAssignment, Declaration, AssignmentOperator, //Producciones Asignacion  
+					AddSub, MultDiv, ArithmeticOperation, //Producciones aritmeticas
+					Comparison, MultipleComparison, AndOr, RelationalOperator, //Producciones de comparacion
+					IF, ELSEIF, //Producciones de if
+					SWITCH,CASE, CaseValues, //Producciones de Switch
+					FUNCTION,Params, MultipleParams, ParamsOrEmpty, RETURN, //Producciones de funciones 
+					CALL, CallParams, CallMultipleParams, CallParamsOrEmpty, //Producciones de llamados a funciones
+					BODY, MAIN, PROGRAM; //Producciones generales
 
 
 /*Gramatica del programa*/
 PROGRAM ::= MAIN FUNCTION;
+
 /*Gramatica para main*/
 MAIN ::= Main leftParenthesis rightParenthesis LeftKey BODY RightKey;
 
