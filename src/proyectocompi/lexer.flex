@@ -147,7 +147,6 @@ VariableName = [:letter:]([:letter:]|[:digit:])*
 	{VariableName}				{return token(sym.VariableName,new String(yytext()));}
 	{endOfLine}					{return token(sym.EOL);}
 	.				{System.out.println("Error en la linea: " + (yyline + 1) + " columna " + (yycolumn+1) + " Character Not Found: " + yytext());}
-        <<EOF>> {System.exit(0);}
 }
 
 <COMMENT>{
