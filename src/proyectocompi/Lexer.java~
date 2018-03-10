@@ -1047,7 +1047,7 @@ class Lexer implements java_cup.runtime.Scanner {
             }
           case 78: break;
           case 34: 
-            { System.out.println("Call: " + yytext());
+            { return token(sym.Call);
             }
           case 79: break;
           case 35: 
@@ -1055,7 +1055,7 @@ class Lexer implements java_cup.runtime.Scanner {
             }
           case 80: break;
           case 36: 
-            { System.out.println("Main "+ yytext());
+            { return token(sym.Main);
             }
           case 81: break;
           case 37: 
@@ -1091,7 +1091,7 @@ class Lexer implements java_cup.runtime.Scanner {
             }
           case 89: break;
           case 45: 
-            { System.out.println("Function: " + yytext());
+            { return token(sym.Function);
             }
           case 90: break;
           default:

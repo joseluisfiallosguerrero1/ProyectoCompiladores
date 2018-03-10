@@ -1,6 +1,28 @@
-switch(numero){
-	case 12:
-	endcase;
-	case default:
-	endcase;
+main(){
+	int a := 2, b := 3;
+	int c;
+
+	if(a<2) then
+		c := a + b * (a/b);
+	endif
+
+	switch (c){
+		case 0:
+			call restar(a,b,c);
+
+			if(c > 0) then 
+				c := 1;
+			elseif(c == 0) then 
+				c := 2;
+			endif
+
+		endcase;
+		case default:
+		endcase;
+	}
 }
+
+function restar(int a, int b, int c):int{
+	c := a - b;
+}
+

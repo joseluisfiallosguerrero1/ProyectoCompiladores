@@ -76,12 +76,12 @@ VariableName = [:letter:]([:letter:]|[:digit:])*
 	{Or}			{return token(sym.Or);}
     {BooleanValue}  {return token(sym.BooleanValue, new String(yytext()));}
     {Then}  {return token(sym.Then);}
-	{Call}	{System.out.println("Call: " + yytext());}
+	{Call}	{return token(sym.Call);}
 	{Write}	{System.out.println("Write: " + yytext());}
 	{Read}	{System.out.println("Read: " + yytext());}
 	{beginCom}	{System.out.println("Inicio de Comentario: " + yytext());
 				yybegin(COMMENT);}
-	{Function}	{System.out.println("Function: " + yytext());}
+	{Function}	{return token(sym.Function);}
 	{Endcase}	{return token(sym.Endcase);}
 	{Default}	{return token(sym.Default);}
 	{While}	{System.out.println("While " + yytext());}
@@ -93,7 +93,7 @@ VariableName = [:letter:]([:letter:]|[:digit:])*
 	{Elseif}	{return token(sym.Elseif);}
 	{Else}		{return token(sym.Else);}
 	{For}		{System.out.println("For "+ yytext());}
-	{Main}		{System.out.println("Main "+ yytext());}
+	{Main}		{return token(sym.Main);}
 	{Switch}		{return token(sym.Switch);}
 	{Case}		{return token(sym.Case);}
 	{Return}	{System.out.println("Return "+ yytext());}

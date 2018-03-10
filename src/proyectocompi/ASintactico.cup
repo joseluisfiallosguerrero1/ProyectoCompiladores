@@ -10,19 +10,33 @@ terminal String VariableName, BooleanValue, Type, MultOP, DivOP, AddOP, SubOP, A
                 EOL, STRING, Delimeter, leftParenthesis, rightParenthesis,ThreePoints,And,Or,Equal,NotEqual,GreaterThan,
                 LessThan,GreaterEqual,LessEqual,
                 If,Elseif,Endif,Else,Then,
-                Case, Endcase,Default,LeftKey,RightKey,Switch,TwoPoints;
+                Case, Endcase,Default,LeftKey,RightKey,Switch,TwoPoints,Function,Call,Main;
 
 non terminal String leftValue, Assignment,MultipleAssignment,Declaration, AddSub,MultDiv,ArithmeticOperation, Comparison,
-					MultipleComparison, AndOr, IF, ELSEIF, RelationalOperator,AssignmentOperator, SWITCH,CASE;
+					MultipleComparison, AndOr, IF, ELSEIF, RelationalOperator,AssignmentOperator, SWITCH,CASE,FUNCTION,Params,
+					MultipleParams,ParamsOrEmpty,CALL, CallParams, CallMultipleParams,CallParamsOrEmpty,BODY,MAIN,PROGRAM,
+					SingleAssignment;
 
 
-/*Gramatica para switch*/
-SWITCH ::= Switch leftParenthesis VariableName rightParenthesis LeftKey CASE Case Default TwoPoints Endcase EOL RightKey|;
-CASE ::= CASE Case leftValue TwoPoints SWITCH Endcase EOL|;
+/*Gramatica del programa*/
+PROGRAM ::= MAIN FUNCTION;
+/*Gramatica para main*/
+MAIN ::= Main leftParenthesis rightParenthesis LeftKey BODY RightKey;
 
-/*Gramatica para if*/
-IF ::= If leftParenthesis Comparison rightParenthesis Then IF ELSEIF Endif |;
-ELSEIF ::= Elseif leftParenthesis Comparison rightParenthesis Then IF ELSEIF | Else IF |;
+/*Gramatica para el body del programa*/
+BODY ::=  Declaration BODY | CALL BODY | IF BODY | SWITCH BODY |SingleAssignment BODY|; 
+
+/*Gramatica para llamados a funciones*/
+CALL ::= Call VariableName leftParenthesis CallParamsOrEmpty rightParenthesis EOL;
+CallParams ::= leftValue CallMultipleParams;
+CallMultipleParams ::= Delimeter CallParams|;
+CallParamsOrEmpty ::= CallParams|;
+
+/*Gramatica para funciones*/
+FUNCTION ::= Function VariableName leftParenthesis ParamsOrEmpty rightParenthesis TwoPoints Type LeftKey BODY RightKey FUNCTION|;
+Params ::= Type VariableName MultipleParams;
+MultipleParams ::= Delimeter Params|;
+ParamsOrEmpty ::= Params|;
 
 /*Gramatica para declaraciones y asignaciones*/
 Declaration ::= Type Assignment EOL;
@@ -30,6 +44,16 @@ Assignment ::= VariableName AssignmentOperator leftValue MultipleAssignment|Vari
 MultipleAssignment ::= Delimeter Assignment|;
 leftValue ::= AddSub|BooleanValue|STRING;
 AssignmentOperator ::= Assign | PlusEqual | MinusEqual | MultEqual | DivEqual;
+SingleAssignment ::= VariableName AssignmentOperator leftValue EOL;
+
+
+/*Gramatica para switch*/
+SWITCH ::= Switch leftParenthesis VariableName rightParenthesis LeftKey CASE Case Default TwoPoints BODY Endcase EOL RightKey;
+CASE ::= CASE Case leftValue TwoPoints BODY Endcase EOL|;
+
+/*Gramatica para if*/
+IF ::= If leftParenthesis Comparison rightParenthesis Then BODY ELSEIF Endif;
+ELSEIF ::= Elseif leftParenthesis Comparison rightParenthesis Then BODY  ELSEIF | Else BODY |;
 
 /*Gramatica para operaciones matematicas*/
 AddSub ::= AddSub AddOP MultDiv | AddSub SubOP MultDiv | MultDiv;
@@ -45,7 +69,3 @@ RelationalOperator ::= Equal | NotEqual | GreaterThan | LessThan | GreaterEqual 
 /*Gramatica para for*/
 
 /*Gramatica para while*/
-
-/*Gramatica para funciones*/
-
-/*Gramatica para main*/
