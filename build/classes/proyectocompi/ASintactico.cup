@@ -77,5 +77,7 @@ AndOr ::= And|Or;
 RelationalOperator ::= Equal | NotEqual | GreaterThan | LessThan | GreaterEqual | LessEqual;
 
 /*Gramatica para for*/
-
+FOR ::= for leftParenthesis Type VariableName Delimeter AddSub ThreePoints AddSub Delimeter AddSub rightParenthesis leftKey BODY rightKey;
+ 
 /*Gramatica para while*/
+WHILE ::= while leftParenthesis Comparison rightParenthesis leftKey BODY rightKey;
