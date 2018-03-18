@@ -49,7 +49,7 @@ public class ProyectoCompi {
         String[] params = new String[3];
         params[0] = "-d";
         params[1] = "src/proyectocompi";
-        params[2] = "src/proyectocompi/Lexer.flex";
+        params[2] = "src/proyectocompi/lexer.flex";
 
         try {
             jflex.Main.generate(params);

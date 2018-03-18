@@ -84,7 +84,7 @@ VariableName = [:letter:]([:letter:]|[:digit:])*
 	{Function}	{return token(sym.Function, new String(yytext()));}
 	{Endcase}	{return token(sym.Endcase, new String(yytext()));}
 	{Default}	{return token(sym.Default, new String(yytext()));}
-	{While}	{System.out.println("While " + yytext());}
+	{While}	{return token(sym.While,new String(yytext()));}
 	{Apostrophe}	{System.out.println("Apostrophe "+ yytext());
 					string = "";
 					yybegin(STRING);}
@@ -92,7 +92,7 @@ VariableName = [:letter:]([:letter:]|[:digit:])*
 	{Endif}	{return token(sym.Endif, new String(yytext()));}
 	{Elseif}	{return token(sym.Elseif, new String(yytext()));}
 	{Else}		{return token(sym.Else, new String(yytext()));}
-	{For}		{System.out.println("For "+ yytext());}
+	{For}		{return token(sym.For,new String(yytext()));}
 	{Main}		{return token(sym.Main, new String(yytext()));}
 	{Switch}		{return token(sym.Switch, new String(yytext()));}
 	{Case}		{return token(sym.Case, new String(yytext()));}

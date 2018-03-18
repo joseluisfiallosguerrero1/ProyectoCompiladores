@@ -17,7 +17,7 @@ terminal String VariableName, BooleanValue, Type, STRING, // Tokens para declara
                 Case, Endcase,Default, Switch, //Tokens para Switch
                 Function, Call,Return, //Tokens para funciones
                 EOL, Delimeter, leftParenthesis, rightParenthesis, ThreePoints, LeftKey, RightKey, TwoPoints,//Simbolos
-                Main;//Main
+                Main,For,While;//Main
 
 non terminal String leftValue, Assignment, SingleAssignment, MultipleAssignment, Declaration, AssignmentOperator, //Producciones Asignacion  
 					AddSub, MultDiv, ArithmeticOperation, //Producciones aritmeticas
@@ -26,7 +26,7 @@ non terminal String leftValue, Assignment, SingleAssignment, MultipleAssignment,
 					SWITCH,CASE, CaseValues, //Producciones de Switch
 					FUNCTION,Params, MultipleParams, ParamsOrEmpty, RETURN, //Producciones de funciones 
 					CALL, CallParams, CallMultipleParams, CallParamsOrEmpty, //Producciones de llamados a funciones
-					BODY, MAIN, PROGRAM; //Producciones generales
+					BODY, MAIN, PROGRAM,FOR,WHILE; //Producciones generales
 
 
 /*Gramatica del programa*/
@@ -52,7 +52,7 @@ MAIN ::= Main leftParenthesis rightParenthesis LeftKey BODY RightKey |
 
 
 /*Gramatica para el body del programa*/
-BODY ::=  Declaration EOL BODY | CALL EOL BODY | IF BODY | SWITCH BODY |SingleAssignment EOL BODY|; 
+BODY ::=  Declaration EOL BODY | CALL EOL BODY | IF BODY | SWITCH BODY |SingleAssignment EOL BODY|FOR BODY|WHILE BODY|; 
 
 /*Gramatica para llamados a funciones*/
 CALL ::= Call VariableName leftParenthesis CallParamsOrEmpty rightParenthesis;
@@ -97,5 +97,7 @@ AndOr ::= And|Or;
 RelationalOperator ::= Equal | NotEqual | GreaterThan | LessThan | GreaterEqual | LessEqual;
 
 /*Gramatica para for*/
-
+FOR ::= For leftParenthesis Type VariableName Delimeter AddSub ThreePoints AddSub Delimeter AddSub rightParenthesis LeftKey BODY RightKey;
+ 
 /*Gramatica para while*/
+WHILE ::= While leftParenthesis Comparison rightParenthesis LeftKey BODY RightKey;
