@@ -878,7 +878,7 @@ class Lexer implements java_cup.runtime.Scanner {
             }
           case 47: break;
           case 3: 
-            { return token(sym.TwoPoints);
+            { return token(sym.TwoPoints, new String(yytext()));
             }
           case 48: break;
           case 4: 
@@ -887,13 +887,13 @@ class Lexer implements java_cup.runtime.Scanner {
           case 49: break;
           case 5: 
             { if("+".equals(yytext())){
-								return token(sym.AddOP);
+								return token(sym.AddOP, new String(yytext()));
 							}else if("-".equals(yytext())){
-								return token(sym.SubOP);
+								return token(sym.SubOP, new String(yytext()));
 							}else if("*".equals(yytext())){
-								return token(sym.MultOP);
+								return token(sym.MultOP, new String(yytext()));
 							}else if("/".equals(yytext())){
-								return token(sym.DivOP);
+								return token(sym.DivOP, new String(yytext()));
 							}
             }
           case 50: break;
@@ -904,7 +904,7 @@ class Lexer implements java_cup.runtime.Scanner {
             }
           case 51: break;
           case 7: 
-            { return token(sym.EOL);
+            { return token(sym.EOL, new String(yytext()));
             }
           case 52: break;
           case 8: 
@@ -916,38 +916,38 @@ class Lexer implements java_cup.runtime.Scanner {
             }
           case 54: break;
           case 10: 
-            { return token(sym.LeftKey);
+            { return token(sym.LeftKey, new String(yytext()));
             }
           case 55: break;
           case 11: 
-            { return token(sym.RightKey);
+            { return token(sym.RightKey, new String(yytext()));
             }
           case 56: break;
           case 12: 
-            { return token(sym.leftParenthesis);
+            { return token(sym.leftParenthesis, new String(yytext()));
             }
           case 57: break;
           case 13: 
-            { return token(sym.rightParenthesis);
+            { return token(sym.rightParenthesis, new String(yytext()));
             }
           case 58: break;
           case 14: 
-            { return token(sym.Delimeter);
+            { return token(sym.Delimeter, new String(yytext()));
             }
           case 59: break;
           case 15: 
             { if("==".equals(yytext())){
-										return token(sym.Equal);
+										return token(sym.Equal, new String(yytext()));
 									}else if("!=".equals(yytext())){
-										return token(sym.NotEqual);
+										return token(sym.NotEqual, new String(yytext()));
 									}else if(">".equals(yytext())){
-										return token(sym.GreaterThan);
+										return token(sym.GreaterThan, new String(yytext()));
 									}else if("<".equals(yytext())){
-										return token(sym.LessThan);
+										return token(sym.LessThan, new String(yytext()));
 									}else if(">=".equals(yytext())){
-										return token(sym.GreaterEqual);
+										return token(sym.GreaterEqual, new String(yytext()));
 									}else if("<=".equals(yytext())){
-										return token(sym.LessEqual);
+										return token(sym.LessEqual, new String(yytext()));
 									}
             }
           case 60: break;
@@ -975,20 +975,20 @@ class Lexer implements java_cup.runtime.Scanner {
           case 65: break;
           case 21: 
             { if(":=".equals(yytext())){
-										return token(sym.Assign);
+										return token(sym.Assign, new String(yytext()));
 									}else if("+=".equals(yytext())){
-										return token(sym.PlusEqual);
+										return token(sym.PlusEqual, new String(yytext()));
 									}else if("-=".equals(yytext())){
-										return token(sym.MinusEqual);
+										return token(sym.MinusEqual, new String(yytext()));
 									}else if("*=".equals(yytext())){
-										return token(sym.MultEqual);
+										return token(sym.MultEqual, new String(yytext()));
 									}else if("/=".equals(yytext())){
-										return token(sym.DivEqual);
+										return token(sym.DivEqual, new String(yytext()));
 									}
             }
           case 66: break;
           case 22: 
-            { return token(sym.Or);
+            { return token(sym.Or, new String(yytext()));
             }
           case 67: break;
           case 23: 
@@ -997,7 +997,7 @@ class Lexer implements java_cup.runtime.Scanner {
             }
           case 68: break;
           case 24: 
-            { return token(sym.If);
+            { return token(sym.If, new String(yytext()));
             }
           case 69: break;
           case 25: 
@@ -1008,11 +1008,11 @@ class Lexer implements java_cup.runtime.Scanner {
             }
           case 70: break;
           case 26: 
-            { return token(sym.ThreePoints);
+            { return token(sym.ThreePoints, new String(yytext()));
             }
           case 71: break;
           case 27: 
-            { return token(sym.And);
+            { return token(sym.And, new String(yytext()));
             }
           case 72: break;
           case 28: 
@@ -1028,7 +1028,7 @@ class Lexer implements java_cup.runtime.Scanner {
             }
           case 75: break;
           case 31: 
-            { return token(sym.Then);
+            { return token(sym.Then, new String(yytext()));
             }
           case 76: break;
           case 32: 
@@ -1036,23 +1036,23 @@ class Lexer implements java_cup.runtime.Scanner {
             }
           case 77: break;
           case 33: 
-            { return token(sym.Else);
+            { return token(sym.Else, new String(yytext()));
             }
           case 78: break;
           case 34: 
-            { return token(sym.Call);
+            { return token(sym.Call, new String(yytext()));
             }
           case 79: break;
           case 35: 
-            { return token(sym.Case);
+            { return token(sym.Case, new String(yytext()));
             }
           case 80: break;
           case 36: 
-            { return token(sym.Main);
+            { return token(sym.Main, new String(yytext()));
             }
           case 81: break;
           case 37: 
-            { return token(sym.Endif);
+            { return token(sym.Endif, new String(yytext()));
             }
           case 82: break;
           case 38: 
@@ -1064,27 +1064,27 @@ class Lexer implements java_cup.runtime.Scanner {
             }
           case 84: break;
           case 40: 
-            { return token(sym.Return);
+            { return token(sym.Return, new String(yytext()));
             }
           case 85: break;
           case 41: 
-            { return token(sym.Elseif);
+            { return token(sym.Elseif, new String(yytext()));
             }
           case 86: break;
           case 42: 
-            { return token(sym.Switch);
+            { return token(sym.Switch, new String(yytext()));
             }
           case 87: break;
           case 43: 
-            { return token(sym.Endcase);
+            { return token(sym.Endcase, new String(yytext()));
             }
           case 88: break;
           case 44: 
-            { return token(sym.Default);
+            { return token(sym.Default, new String(yytext()));
             }
           case 89: break;
           case 45: 
-            { return token(sym.Function);
+            { return token(sym.Function, new String(yytext()));
             }
           case 90: break;
           default:

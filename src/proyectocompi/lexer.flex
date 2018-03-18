@@ -70,82 +70,82 @@ VariableName = [:letter:]([:letter:]|[:digit:])*
 %%
 
 <YYINITIAL>{
-	{TwoPoints}		{return token(sym.TwoPoints);}
-	{ThreePoints}	{return token(sym.ThreePoints);}
-	{And}			{return token(sym.And);}
-	{Or}			{return token(sym.Or);}
+	{TwoPoints}		{return token(sym.TwoPoints, new String(yytext()));}
+	{ThreePoints}	{return token(sym.ThreePoints, new String(yytext()));}
+	{And}			{return token(sym.And, new String(yytext()));}
+	{Or}			{return token(sym.Or, new String(yytext()));}
     {BooleanValue}  {return token(sym.BooleanValue, new String(yytext()));}
-    {Then}  {return token(sym.Then);}
-	{Call}	{return token(sym.Call);}
+    {Then}  {return token(sym.Then, new String(yytext()));}
+	{Call}	{return token(sym.Call, new String(yytext()));}
 	{Write}	{System.out.println("Write: " + yytext());}
 	{Read}	{System.out.println("Read: " + yytext());}
 	{beginCom}	{System.out.println("Inicio de Comentario: " + yytext());
 				yybegin(COMMENT);}
-	{Function}	{return token(sym.Function);}
-	{Endcase}	{return token(sym.Endcase);}
-	{Default}	{return token(sym.Default);}
+	{Function}	{return token(sym.Function, new String(yytext()));}
+	{Endcase}	{return token(sym.Endcase, new String(yytext()));}
+	{Default}	{return token(sym.Default, new String(yytext()));}
 	{While}	{System.out.println("While " + yytext());}
 	{Apostrophe}	{System.out.println("Apostrophe "+ yytext());
 					string = "";
 					yybegin(STRING);}
-	{If}	{return token(sym.If);}
-	{Endif}	{return token(sym.Endif);}
-	{Elseif}	{return token(sym.Elseif);}
-	{Else}		{return token(sym.Else);}
+	{If}	{return token(sym.If, new String(yytext()));}
+	{Endif}	{return token(sym.Endif, new String(yytext()));}
+	{Elseif}	{return token(sym.Elseif, new String(yytext()));}
+	{Else}		{return token(sym.Else, new String(yytext()));}
 	{For}		{System.out.println("For "+ yytext());}
-	{Main}		{return token(sym.Main);}
-	{Switch}		{return token(sym.Switch);}
-	{Case}		{return token(sym.Case);}
-	{Return}	{return token(sym.Return);}
-	{Delimeter}	{return token(sym.Delimeter);}
-	{leftParenthesis}	{return token(sym.leftParenthesis);}
-	{rightParenthesis}	{return token(sym.rightParenthesis);}
-	{leftKey}	{return token(sym.LeftKey);}
-	{rightKey}	{return token(sym.RightKey);}
+	{Main}		{return token(sym.Main, new String(yytext()));}
+	{Switch}		{return token(sym.Switch, new String(yytext()));}
+	{Case}		{return token(sym.Case, new String(yytext()));}
+	{Return}	{return token(sym.Return, new String(yytext()));}
+	{Delimeter}	{return token(sym.Delimeter, new String(yytext()));}
+	{leftParenthesis}	{return token(sym.leftParenthesis, new String(yytext()));}
+	{rightParenthesis}	{return token(sym.rightParenthesis, new String(yytext()));}
+	{leftKey}	{return token(sym.LeftKey, new String(yytext()));}
+	{rightKey}	{return token(sym.RightKey, new String(yytext()));}
 	{leftBracket}	{System.out.println("leftBrack "+ yytext());}
 	{rightBracket}	{System.out.println("rightBrack "+ yytext());}
 	{spaces}	{}
 	{Type}			{return token(sym.Type,new String(yytext()));}
 	{ArithmeticOperator}	{if("+".equals(yytext())){
-								return token(sym.AddOP);
+								return token(sym.AddOP, new String(yytext()));
 							}else if("-".equals(yytext())){
-								return token(sym.SubOP);
+								return token(sym.SubOP, new String(yytext()));
 							}else if("*".equals(yytext())){
-								return token(sym.MultOP);
+								return token(sym.MultOP, new String(yytext()));
 							}else if("/".equals(yytext())){
-								return token(sym.DivOP);
+								return token(sym.DivOP, new String(yytext()));
 							}}
 	{RelationalOperator}		{	if("==".equals(yytext())){
-										return token(sym.Equal);
+										return token(sym.Equal, new String(yytext()));
 									}else if("!=".equals(yytext())){
-										return token(sym.NotEqual);
+										return token(sym.NotEqual, new String(yytext()));
 									}else if(">".equals(yytext())){
-										return token(sym.GreaterThan);
+										return token(sym.GreaterThan, new String(yytext()));
 									}else if("<".equals(yytext())){
-										return token(sym.LessThan);
+										return token(sym.LessThan, new String(yytext()));
 									}else if(">=".equals(yytext())){
-										return token(sym.GreaterEqual);
+										return token(sym.GreaterEqual, new String(yytext()));
 									}else if("<=".equals(yytext())){
-										return token(sym.LessEqual);
+										return token(sym.LessEqual, new String(yytext()));
 									} 
 									
 								}
 	{AssignmentOperator}		{
 									if(":=".equals(yytext())){
-										return token(sym.Assign);
+										return token(sym.Assign, new String(yytext()));
 									}else if("+=".equals(yytext())){
-										return token(sym.PlusEqual);
+										return token(sym.PlusEqual, new String(yytext()));
 									}else if("-=".equals(yytext())){
-										return token(sym.MinusEqual);
+										return token(sym.MinusEqual, new String(yytext()));
 									}else if("*=".equals(yytext())){
-										return token(sym.MultEqual);
+										return token(sym.MultEqual, new String(yytext()));
 									}else if("/=".equals(yytext())){
-										return token(sym.DivEqual);
+										return token(sym.DivEqual, new String(yytext()));
 									}
 								}
 	{Number}					{return token(sym.Number, new String(yytext()));}
 	{VariableName}				{return token(sym.VariableName,new String(yytext()));}
-	{endOfLine}					{return token(sym.EOL);}
+	{endOfLine}					{return token(sym.EOL, new String(yytext()));}
 	.				{System.out.println("Error en la linea: " + (yyline + 1) + " columna " + (yycolumn+1) + " Character Not Found: " + yytext());}
 }
 

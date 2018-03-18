@@ -2,6 +2,9 @@ package proyectocompi;
 import java_cup.runtime.*;
 
 parser code{:
+	public void report_error(String errorBody, Object info) {
+		
+	}
 
 :};
 
@@ -30,7 +33,23 @@ non terminal String leftValue, Assignment, SingleAssignment, MultipleAssignment,
 PROGRAM ::= MAIN FUNCTION;
 
 /*Gramatica para main*/
-MAIN ::= Main leftParenthesis rightParenthesis LeftKey BODY RightKey;
+MAIN ::= Main leftParenthesis rightParenthesis LeftKey BODY RightKey | 
+		 error:e{:
+		 		System.out.println("Error sintactico en la linea " + (eleft+1) + "; columna " + (eright+1) + ". Token Main ausente");
+		 	:} leftParenthesis rightParenthesis LeftKey BODY RightKey|
+		 	 Main error:e{:
+		 		System.out.println("Error sintactico en la linea " + (eleft+1) + "; columna " + (eright+1) + ". Token ( ausente");
+		 	:} rightParenthesis LeftKey BODY RightKey|
+		 	Main leftParenthesis error:e{:
+		 		System.out.println("Error sintactico en la linea " + (eleft+1) + "; columna " + (eright+1) + ". Token ) ausente");
+		 	:} LeftKey BODY RightKey|
+		 	Main leftParenthesis rightParenthesis error:e{:
+		 		System.out.println("Error sintactico en la linea " + (eleft+1) + "; columna " + (eright+1) + ". Token { ausente");
+		 	:} BODY RightKey|
+		 	Main leftParenthesis rightParenthesis LeftKey BODY error:e{:
+		 		System.out.println("Error sintactico en la linea " + (eleft+1) + "; columna " + (eright+1) + ". Token } ausente");
+		 	:};
+
 
 /*Gramatica para el body del programa*/
 BODY ::=  Declaration EOL BODY | CALL EOL BODY | IF BODY | SWITCH BODY |SingleAssignment EOL BODY|; 
@@ -61,6 +80,7 @@ AssignmentOperator ::= Assign | PlusEqual | MinusEqual | MultEqual | DivEqual;
 SWITCH ::= Switch leftParenthesis VariableName rightParenthesis LeftKey CASE Case Default TwoPoints BODY Endcase EOL RightKey;
 CASE ::= CASE Case CaseValues TwoPoints BODY Endcase EOL|;
 CaseValues ::= AddSub|BooleanValue|STRING;
+
 /*Gramatica para if*/
 IF ::= If leftParenthesis Comparison rightParenthesis Then BODY ELSEIF Endif;
 ELSEIF ::= Elseif leftParenthesis Comparison rightParenthesis Then BODY  ELSEIF | Else BODY |;
