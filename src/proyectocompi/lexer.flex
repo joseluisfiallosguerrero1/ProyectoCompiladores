@@ -28,8 +28,7 @@ TwoPoints = ":"
 ThreePoints = "..."
 And = "AND"
 Or = "OR"
-BooleanValue = "true" | "false"  
-Then = "then"
+BooleanValue = "true" | "false"
 Call = "call"
 beginCom = "/%"
 endCom = "%/"
@@ -50,7 +49,6 @@ leftParenthesis = "("
 rightParenthesis = ")"
 Delimeter = ","
 If = "if"
-Endif = "endif"
 Elseif = "elseif"
 Else = "else"
 For = "for"
@@ -77,7 +75,6 @@ VariableName = [:letter:]([:letter:]|[:digit:])*
 	{And}			{return token(sym.And, new String(yytext()));}
 	{Or}			{return token(sym.Or, new String(yytext()));}
     {BooleanValue}  {return token(sym.BooleanValue, new String(yytext()));}
-    {Then}  {return token(sym.Then, new String(yytext()));}
 	{Call}	{return token(sym.Call, new String(yytext()));}
 	{Write}	{System.out.println("Write: " + yytext());}
 	{Read}	{System.out.println("Read: " + yytext());}
@@ -91,7 +88,6 @@ VariableName = [:letter:]([:letter:]|[:digit:])*
 					string = "";
 					yybegin(STRING);}
 	{If}	{return token(sym.If, new String(yytext()));}
-	{Endif}	{return token(sym.Endif, new String(yytext()));}
 	{Elseif}	{return token(sym.Elseif, new String(yytext()));}
 	{Else}		{return token(sym.Else, new String(yytext()));}
 	{For}		{return token(sym.For,new String(yytext()));}

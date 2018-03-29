@@ -1042,7 +1042,8 @@ class Lexer implements java_cup.runtime.Scanner {
             { return token(sym.Else, new String(yytext()));
             }
           case 79: break;
-          case 34: 
+          case 34: 1
+                  1 111
             { return token(sym.Call, new String(yytext()));
             }
           case 80: break;

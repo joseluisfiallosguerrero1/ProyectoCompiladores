@@ -30,7 +30,7 @@ main(){
 	return 1;
 }
 
-function (int a, int b):int{
+function suma(int a, int b):int{
 	call suma (a,a);
 	int a := a+a;
 	return 1;

@@ -135,26 +135,98 @@ parser code{:
 :};
 
 terminal Number;
-terminal String VariableName, BooleanValue, Type, STRING, // Tokens para declaraciones y asignaciones 
-				MultOP, DivOP, AddOP, SubOP, //Tokens de operadores aritmeticos
-				Assign, PlusEqual,MinusEqual,MultEqual,DivEqual, //Tokens de asignacion
-				And, Or, Equal, NotEqual, GreaterThan, LessThan,GreaterEqual, LessEqual, // Tokens relacionales
-                If, Elseif, Endif, Else, Then, //Tokens para if
-                Case, Endcase,Default, Switch, //Tokens para Switch
-                Function, Call,Return, //Tokens para funciones
-                EOL, Delimeter, leftParenthesis, rightParenthesis, ThreePoints, LeftKey, RightKey, TwoPoints,//Simbolos
-                Main,For,While,//Main
-                LeftBracket, RightBracket,ArrayType;
+terminal VariableName; 
+terminal BooleanValue; 
+terminal Type; 
+terminal STRING;  
+terminal MultOP; 
+terminal DivOP; 
+terminal AddOP; 
+terminal SubOP; 
+terminal Assign; 
+terminal PlusEqual;
+terminal MinusEqual;
+terminal MultEqual;
+terminal DivEqual; 
+terminal And; 
+terminal Or; 
+terminal Equal; 
+terminal NotEqual; 
+terminal GreaterThan; 
+terminal LessThan;
+terminal GreaterEqual; 
+terminal LessEqual; 
+terminal If; 
+terminal Elseif; 
+terminal Else; 
+terminal Case; 
+terminal Endcase;
+terminal Default; 
+terminal Switch;
+terminal Function; 
+terminal Call;
+terminal Return; 
+terminal EOL;
+terminal Delimeter; 
+terminal leftParenthesis; 
+terminal rightParenthesis; 
+terminal ThreePoints; 
+terminal LeftKey; 
+terminal RightKey; 
+terminal TwoPoints;
+terminal Main;
+terminal For;
+terminal While;
+terminal LeftBracket; 
+terminal RightBracket;
+terminal ArrayType;
 
-non terminal String leftValue, Assignment, SingleAssignment, Declaration, AssignmentOperator, //Producciones Asignacion  
-					AddSub, MultDiv, MultipleAddSub, MultipleMultDiv, ArithmeticOperation, //Producciones aritmeticas
-					Comparison, AndOr, RelationalOperator,ComparisonInParenthesis,MultipleComparison, //Producciones de comparacion
-					IF, ELSEIF,ELSE,IfType, //Producciones de if
-					SWITCH,CASE,CaseHeader,CaseEnding, CaseValues,ComparisonSwitch,BodySwitch, //Producciones de Switch
-					FUNCTION,Params, ParamsOrEmpty, RETURN,FunctionHeader,FunctionBody, //Producciones de funciones 
-					CALL, CallParams, CallParamsOrEmpty,CallHeader, //Producciones de llamados a funciones
-					BODY, MAIN, PROGRAM,FOR,WHILE,WhileForBody, ERROR,
-					ArrayAssignment,Element,VariableType, paramsFor, declarationFor,rangeFor,stepFor; //Producciones generales
+non terminal leftValue; 
+non terminal Assignment; 
+non terminal SingleAssignment; 
+non terminal Declaration; 
+non terminal AssignmentOperator;   
+non terminal AddSub; 
+non terminal MultDiv; 
+non terminal MultipleAddSub; 
+non terminal MultipleMultDiv; 
+non terminal ArithmeticOperation; 
+non terminal Comparison; 
+non terminal AndOr; 
+non terminal RelationalOperator;
+non terminal ComparisonInParenthesis;
+non terminal MultipleComparison;
+non terminal IF;
+non terminal ELSEIF;
+non terminal SWITCH;
+non terminal CASE;
+non terminal CaseHeader;
+non terminal CaseEnding; 
+non terminal CaseValues;
+non terminal ComparisonSwitch;
+non terminal FUNCTION;
+non terminal Params;
+non terminal ParamsOrEmpty; 
+non terminal RETURN;
+non terminal FunctionHeader;
+non terminal FunctionBody;  
+non terminal CALL;
+non terminal CallParams; 
+non terminal CallParamsOrEmpty;
+non terminal CallHeader; 
+non terminal BODY; 
+non terminal MAIN; 
+non terminal PROGRAM;
+non terminal FOR;
+non terminal WHILE;
+non terminal WhileForBody; 
+non terminal ERROR;
+non terminal ArrayAssignment;
+non terminal Element;
+non terminal VariableType; 
+non terminal paramsFor; 
+non terminal declarationFor;
+non terminal rangeFor; 
 
 
 /*Gramatica del programa*/
@@ -167,7 +239,15 @@ MAIN ::= Main leftParenthesis rightParenthesis FunctionBody|
 		 :} FunctionBody;
 
 /*Gramatica para el body del programa*/
-BODY ::=  BODY ERROR|BODY Declaration| BODY CALL |  BODY IF  | BODY SWITCH | BODY SingleAssignment|BODY FOR|BODY WHILE|; 
+BODY ::=  BODY ERROR|
+		  BODY Declaration| 
+		  BODY CALL |  
+		  BODY IF  | 
+		  BODY SWITCH | 
+		  BODY SingleAssignment|
+		  BODY FOR|
+		  BODY WHILE|;
+
 ERROR ::= Call error:e{:
 				System.out.println("Call error EOL");
 				parser.callError(eleft + 1, eright + 1);
@@ -187,7 +267,8 @@ ERROR ::= Call error:e{:
 /*Gramatica para llamados a funciones*/
 CALL ::= Call VariableName CallHeader EOL;
 CallHeader ::= leftParenthesis CallParamsOrEmpty rightParenthesis;
-CallParams ::= leftValue | CallParams Delimeter leftValue;
+CallParams ::= leftValue | 
+			   CallParams Delimeter leftValue;
 CallParamsOrEmpty ::= CallParams|;
 
 /*Gramatica para funciones*/
@@ -213,19 +294,33 @@ FunctionBody ::= LeftKey BODY RETURN RightKey|
 				 error:e{:
 				 	System.out.println("Fixing");
 				 :} BODY RETURN RightKey;
-Params ::= VariableType VariableName| Params Delimeter VariableType VariableName;
+Params ::= VariableType VariableName| 
+		   Params Delimeter VariableType VariableName;
 ParamsOrEmpty ::= Params|;
 RETURN ::= Return leftValue EOL;
 
 /*Gramatica para declaraciones y asignaciones*/
 Declaration ::= VariableType Assignment EOL;
-Assignment ::= VariableName AssignmentOperator leftValue | Assignment Delimeter VariableName AssignmentOperator leftValue|
-			   VariableName| Assignment Delimeter VariableName; 
-leftValue ::= AddSub|BooleanValue|STRING|CALL|ArrayAssignment;
-AssignmentOperator ::= Assign | PlusEqual | MinusEqual | MultEqual | DivEqual;
-VariableType ::= Type | ArrayType; 
-ArrayAssignment ::= Type LeftBracket AddSub RightBracket | LeftBracket Element RightBracket;
-Element ::= leftValue | Element Delimeter leftValue;
+Assignment ::= VariableName AssignmentOperator leftValue | 
+               Assignment Delimeter VariableName AssignmentOperator leftValue|
+			   VariableName| 
+			   Assignment Delimeter VariableName; 
+leftValue ::= AddSub|
+              BooleanValue|
+              STRING|
+              CALL|
+              ArrayAssignment;
+AssignmentOperator ::= Assign | 
+                       PlusEqual | 
+                       MinusEqual | 
+                       MultEqual | 
+                       DivEqual;
+VariableType ::= Type | 
+                 ArrayType; 
+ArrayAssignment ::= Type LeftBracket AddSub RightBracket | 
+                    LeftBracket Element RightBracket;
+Element ::= leftValue | 
+            Element Delimeter leftValue;
 SingleAssignment ::= VariableName AssignmentOperator leftValue EOL;
 
 /*Gramatica para switch*/
@@ -246,25 +341,38 @@ CASE ::= CASE  CaseHeader CaseEnding|
 					System.out.println("CaseHeader");
 					parser.caseHeaderError(eleft+1, eright+1);
 				:} CaseEnding|;
-CaseValues ::= Number|STRING|Default;
+CaseValues ::= Number|
+               STRING|
+               Default;
 
 /*Gramatica para if*/
 IF ::= If ComparisonInParenthesis WhileForBody ELSEIF;
-ELSEIF ::= Elseif ComparisonInParenthesis WhileForBody ELSEIF|Else WhileForBody|;
+ELSEIF ::= Elseif ComparisonInParenthesis WhileForBody ELSEIF|
+           Else WhileForBody|;
 
 /*Gramatica para operaciones matematicas*/
 AddSub ::= MultDiv MultipleAddSub;
-MultipleAddSub ::= AddOP MultDiv MultipleAddSub | SubOP MultDiv MultipleAddSub|;
+MultipleAddSub ::= AddOP MultDiv MultipleAddSub | 
+                   SubOP MultDiv MultipleAddSub|;
 MultDiv ::= ArithmeticOperation MultipleMultDiv;
-MultipleMultDiv ::= MultOP ArithmeticOperation MultipleMultDiv| DivOP ArithmeticOperation MultipleMultDiv|;
-ArithmeticOperation ::= VariableName| Number|leftParenthesis AddSub rightParenthesis;  
+MultipleMultDiv ::= MultOP ArithmeticOperation MultipleMultDiv| 
+                    DivOP ArithmeticOperation MultipleMultDiv|;
+ArithmeticOperation ::= VariableName| 
+                        Number|
+                        leftParenthesis AddSub rightParenthesis;  
 
 /*Gramatica para comparaciones*/
 ComparisonInParenthesis ::= leftParenthesis Comparison rightParenthesis;
 Comparison ::= leftValue RelationalOperator leftValue MultipleComparison;
 MultipleComparison ::= AndOr Comparison|;
-AndOr ::= And|Or;
-RelationalOperator ::=Equal | NotEqual | GreaterThan | LessThan | GreaterEqual | LessEqual;
+AndOr ::= And|
+          Or;
+RelationalOperator ::=Equal | 
+                      NotEqual | 
+                      GreaterThan | 
+                      LessThan | 
+                      GreaterEqual | 
+                      LessEqual;
 
 /*Gramatica para for*/
 FOR ::= For paramsFor WhileForBody;
