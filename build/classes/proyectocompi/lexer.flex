@@ -59,6 +59,7 @@ Switch = "switch"
 Case = "case"
 Return = "return"
 Type = ("int" | "boolean" | "char" | "string")
+ArrayType = ("int[]" | "char[]" | "string[]" | "boolean[]")
 ArithmeticOperator = "+"|"-"|"*"|"/"
 RelationalOperator = "=="|"<="|">="|"<"|">"|"!="
 AssignmentOperator = ":=" | "+=" | "-=" | "*=" | "/="
@@ -70,6 +71,7 @@ VariableName = [:letter:]([:letter:]|[:digit:])*
 %%
 
 <YYINITIAL>{
+	{ArrayType}		{return token(sym.ArrayType, new String(yytext()));}
 	{TwoPoints}		{return token(sym.TwoPoints, new String(yytext()));}
 	{ThreePoints}	{return token(sym.ThreePoints, new String(yytext()));}
 	{And}			{return token(sym.And, new String(yytext()));}
@@ -102,8 +104,8 @@ VariableName = [:letter:]([:letter:]|[:digit:])*
 	{rightParenthesis}	{return token(sym.rightParenthesis, new String(yytext()));}
 	{leftKey}	{return token(sym.LeftKey, new String(yytext()));}
 	{rightKey}	{return token(sym.RightKey, new String(yytext()));}
-	{leftBracket}	{System.out.println("leftBrack "+ yytext());}
-	{rightBracket}	{System.out.println("rightBrack "+ yytext());}
+	{leftBracket}	{return token(sym.LeftBracket, new String(yytext()));}
+	{rightBracket}	{return token(sym.RightBracket, new String(yytext()));}
 	{spaces}	{}
 	{Type}			{return token(sym.Type,new String(yytext()));}
 	{ArithmeticOperator}	{if("+".equals(yytext())){

@@ -16,7 +16,7 @@ import java_cup.runtime.*;
 
 /**
  *
- * @author Usuario
+0 * @author Usuario
  */
 public class ProyectoCompi {
 
@@ -42,9 +42,6 @@ public class ProyectoCompi {
       
     }
 
-    public static int sum(){
-        return 1;
-    }
     public static void generateLexer() {
         String[] params = new String[3];
         params[0] = "-d";

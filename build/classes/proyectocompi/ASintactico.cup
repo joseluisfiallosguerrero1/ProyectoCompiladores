@@ -1,11 +1,137 @@
-package proyectocompi;
+package proyectocompi;	
 import java_cup.runtime.*;
 
 parser code{:
+	Symbol next;
 	public void report_error(String errorBody, Object info) {
-		
+		next = (Symbol)info;
+		System.out.println("Next: " + next.value);
 	}
 
+	public void report_fatal_error(String errorBody, Object info) {
+		next = (Symbol)info;
+		System.out.println("Next: " + next.value);
+		System.out.println("Unexpected Token");
+	}
+
+	public int error_sync_size(){
+		return 1;
+	}
+
+	public void unrecovered_syntax_error(Symbol s){
+		System.out.println("Unexpected token: " + next.value + " in line: " + next.left + "; column: " + next.right);
+	}
+
+	public void callError(int line, int column){
+		if(next.sym == sym.leftParenthesis){
+			printError(line,next.right - 1,"Missing function name");
+		}else if(next.sym == sym.VariableName || next.sym == sym.Number || 
+			next.sym == sym.STRING || next.sym == sym.BooleanValue){
+			printError(line,next.right-1,"Missing '(' or ','");
+		}else if(next.sym == sym.Delimeter || next.sym == sym.rightParenthesis){
+			printError(line,column,"Syntax error in function parameter");
+		}else if(next.sym == sym.EOL){
+			printError(line,column,"Missing ')'");
+		}
+	}
+
+	public void assignmentError(int line, int column){
+		printError(line,column,"Syntax error un assigment");
+	}
+
+	public void missingCallOrTypeError(int line, int column){
+		if(next.sym == sym.VariableName){
+			printError(line,next.right - 1,"Syntax error in call or in variable type");		
+		}else if(next.sym == sym.Assign ||next.sym == sym.MinusEqual ||next.sym == sym.PlusEqual ||
+				next.sym == sym.DivEqual ||next.sym == sym.MultEqual){
+			printError(line,next.right-1,"Syntax error in variable name");
+		}else if(next.sym == sym.leftParenthesis){
+			printError(line,column,"Missing for");
+		}else if(next.sym == sym.Call || next.sym == sym.Type || next.sym == sym.ArrayType || 
+				next.sym == sym.If ||next.sym == sym.For || next.sym == sym.While || next.sym == sym.Switch ||
+				next.sym == sym.RightKey){
+			printError(line,column,"Missing  '(' or '{'");
+		}
+	}
+
+	public void structureError(int line, int column){
+		if(next.sym == sym.leftParenthesis){
+			printError(line,column,"Missing if/elseif or while or switch");	
+		}else if(next.sym == sym.VariableName || next.sym == sym.Number || next.sym == sym.BooleanValue||
+			next.sym == sym.STRING){
+			printError(line,next.right-1,"Syntax error in comparison for structure or in function name");
+		}else if(next.sym == sym.Equal || next.sym == sym.GreaterThan|| next.sym == sym.GreaterEqual||
+			     next.sym == sym.LessThan || next.sym == sym.LessEqual ||next.sym == sym.NotEqual){
+			printError(line,next.right-1,"Missing left value in comparison");
+		}else if(next.sym == sym.And || next.sym == sym.Or || next.sym == sym.rightParenthesis){
+			printError(line,next.right-1,"Missing right value in comparison");
+		}else if(next.sym == sym.LeftKey){
+			printError(line,column,"Missing ')' or else");
+		}else if(next.sym == sym.Elseif || next.sym == sym.Else){
+			printError(next.left+1,next.right,"Missing '}'");
+		}
+	}
+
+	public void returnError(int line, int column){
+		 if(sym.RightKey == next.sym){
+			printError(next.left,column,"Syntax error in return");
+		}else{
+			printError(next.left-1,next.right,"Missing '}'");
+		}
+	}
+
+	public void switchError(int line, int column){
+		if(next.sym == sym.VariableName){
+			printError(line,column,"Missing '('");
+		}else if(next.sym == sym.rightParenthesis){
+			printError(line,column,"Missing variable for switch");
+		}else if(next.sym == sym.LeftKey){
+			printError(line,column,"Missing ')'");
+		}else if(next.sym == sym.Case){
+			printError(line,column,"Missing '{'");
+		}
+	}
+
+	public void caseHeaderError(int line, int column){
+		if(next.sym == sym.Number || next.sym == sym.STRING || next.sym == sym.Default){
+			printError(next.left+1,next.right-1,"Syntax error in case");
+		}else if(next.sym == sym.TwoPoints){
+			printError(next.left+1,next.right-1,"Missing case value");
+		}else{
+			printError(next.left+1,next.right-1,"Syntax error in case");
+		}
+	}
+
+	public void caseEndingError(int line, int column){
+		if(next.sym == sym.EOL){
+			printError(line,next.right,"Syntax error in endcase");
+		}else if(next.sym == sym.Case || next.sym == sym.RightKey){
+			printError(line,next.right,"Syntax error in endcase");
+		}
+	}
+
+	public void functionError(int line, int column, String word){
+		if(word.equals("Function")){
+			printError(line,next.right,"Syntax error in function name");	
+		}else if(word.equals("BeforeType")){
+			if(next.sym == sym.Type){
+				printError(line,column,"Missing '(' or ',' or ':'");
+			}else if(next.sym == sym.VariableName){
+				printError(line,column,"Syntax error parameter types");
+			}else if(next.sym == sym.Delimeter || next.sym == sym.rightParenthesis){
+				printError(line,column,"Syntax error in parameters");
+			}else if (next.sym == sym.TwoPoints) {
+				printError(line,column,"Missing ')'");
+			}		
+		}else if(word.equals("Type")){
+			printError(line,column,"Syntax error in return type");
+		}
+	}
+
+	public void printError(int line, int column, String message){
+		System.out.println("Syntax error in line: " + line + " Column: " + column + 
+					"; "  + message);
+	}
 :};
 
 terminal Number;
@@ -17,87 +143,139 @@ terminal String VariableName, BooleanValue, Type, STRING, // Tokens para declara
                 Case, Endcase,Default, Switch, //Tokens para Switch
                 Function, Call,Return, //Tokens para funciones
                 EOL, Delimeter, leftParenthesis, rightParenthesis, ThreePoints, LeftKey, RightKey, TwoPoints,//Simbolos
-                Main,For,While;//Main
+                Main,For,While,//Main
+                LeftBracket, RightBracket,ArrayType;
 
-non terminal String leftValue, Assignment, SingleAssignment, MultipleAssignment, Declaration, AssignmentOperator, //Producciones Asignacion  
-					AddSub, MultDiv, ArithmeticOperation, //Producciones aritmeticas
-					Comparison, MultipleComparison, AndOr, RelationalOperator, //Producciones de comparacion
-					IF, ELSEIF, //Producciones de if
-					SWITCH,CASE, CaseValues, //Producciones de Switch
-					FUNCTION,Params, MultipleParams, ParamsOrEmpty, RETURN, //Producciones de funciones 
-					CALL, CallParams, CallMultipleParams, CallParamsOrEmpty, //Producciones de llamados a funciones
-					BODY, MAIN, PROGRAM,FOR,WHILE; //Producciones generales
+non terminal String leftValue, Assignment, SingleAssignment, Declaration, AssignmentOperator, //Producciones Asignacion  
+					AddSub, MultDiv, MultipleAddSub, MultipleMultDiv, ArithmeticOperation, //Producciones aritmeticas
+					Comparison, AndOr, RelationalOperator,ComparisonInParenthesis,MultipleComparison, //Producciones de comparacion
+					IF, ELSEIF,ELSE,IfType, //Producciones de if
+					SWITCH,CASE,CaseHeader,CaseEnding, CaseValues,ComparisonSwitch,BodySwitch, //Producciones de Switch
+					FUNCTION,Params, ParamsOrEmpty, RETURN,FunctionHeader,FunctionBody, //Producciones de funciones 
+					CALL, CallParams, CallParamsOrEmpty,CallHeader, //Producciones de llamados a funciones
+					BODY, MAIN, PROGRAM,FOR,WHILE,WhileForBody, ERROR,
+					ArrayAssignment,Element,VariableType, paramsFor, declarationFor,rangeFor,stepFor; //Producciones generales
 
 
 /*Gramatica del programa*/
 PROGRAM ::= MAIN FUNCTION;
 
 /*Gramatica para main*/
-MAIN ::= Main leftParenthesis rightParenthesis LeftKey BODY RightKey | 
+MAIN ::= Main leftParenthesis rightParenthesis FunctionBody|
 		 error:e{:
-		 		System.out.println("Error sintactico en la linea " + (eleft+1) + "; columna " + (eright+1) + ". Token Main ausente");
-		 	:} leftParenthesis rightParenthesis LeftKey BODY RightKey|
-		 	 Main error:e{:
-		 		System.out.println("Error sintactico en la linea " + (eleft+1) + "; columna " + (eright+1) + ". Token ( ausente");
-		 	:} rightParenthesis LeftKey BODY RightKey|
-		 	Main leftParenthesis error:e{:
-		 		System.out.println("Error sintactico en la linea " + (eleft+1) + "; columna " + (eright+1) + ". Token ) ausente");
-		 	:} LeftKey BODY RightKey|
-		 	Main leftParenthesis rightParenthesis error:e{:
-		 		System.out.println("Error sintactico en la linea " + (eleft+1) + "; columna " + (eright+1) + ". Token { ausente");
-		 	:} BODY RightKey|
-		 	Main leftParenthesis rightParenthesis LeftKey BODY error:e{:
-		 		System.out.println("Error sintactico en la linea " + (eleft+1) + "; columna " + (eright+1) + ". Token } ausente");
-		 	:};
-
+		 		System.out.println("Missing main");
+		 :} FunctionBody;
 
 /*Gramatica para el body del programa*/
-BODY ::=  Declaration EOL BODY | CALL EOL BODY | IF BODY | SWITCH BODY |SingleAssignment EOL BODY|FOR BODY|WHILE BODY|; 
+BODY ::=  BODY ERROR|BODY Declaration| BODY CALL |  BODY IF  | BODY SWITCH | BODY SingleAssignment|BODY FOR|BODY WHILE|; 
+ERROR ::= Call error:e{:
+				System.out.println("Call error EOL");
+				parser.callError(eleft + 1, eright + 1);
+		  :} EOL| 
+		  VariableType error:e{:
+		  		System.out.println("Type error EOL");
+		  		parser.assignmentError(eleft + 1, eright + 1);
+		  :} EOL|error:e{:
+		  		System.out.println("Missing Call or type");
+		  		parser.missingCallOrTypeError(eleft + 1, eright +1);
+		  :} EOL|
+		  error:e{:
+		  		System.out.println("While or For or if");
+		  		parser.structureError(eleft+1, eright+1);
+		  :} WhileForBody;
 
 /*Gramatica para llamados a funciones*/
-CALL ::= Call VariableName leftParenthesis CallParamsOrEmpty rightParenthesis;
-CallParams ::= leftValue CallMultipleParams;
-CallMultipleParams ::= Delimeter CallParams|;
+CALL ::= Call VariableName CallHeader EOL;
+CallHeader ::= leftParenthesis CallParamsOrEmpty rightParenthesis;
+CallParams ::= leftValue | CallParams Delimeter leftValue;
 CallParamsOrEmpty ::= CallParams|;
 
 /*Gramatica para funciones*/
-FUNCTION ::= Function VariableName leftParenthesis ParamsOrEmpty rightParenthesis TwoPoints Type LeftKey BODY RETURN RightKey FUNCTION|;
-Params ::= Type VariableName MultipleParams;
-MultipleParams ::= Delimeter Params|;
+FUNCTION ::= Function VariableName FunctionHeader  FunctionBody FUNCTION|
+			 error:e{:
+			 	System.out.println("Function");
+			 	parser.functionError(eleft+1,eright+1,"Function");
+			 :} FunctionBody FUNCTION|;
+FunctionHeader ::= leftParenthesis ParamsOrEmpty rightParenthesis TwoPoints VariableType|
+				   error:e{:
+				   		System.out.println("BeforeType");
+			 			parser.functionError(eleft+1,eright+1,"BeforeType");
+				   	:} VariableType|
+				   	leftParenthesis ParamsOrEmpty rightParenthesis error:e{:
+				   		System.out.println("Type");
+			 			parser.functionError(eleft+1,eright+1,"Type");
+				   	:};
+FunctionBody ::= LeftKey BODY RETURN RightKey|
+				 LeftKey BODY error:e{:
+				 		System.out.println("return");
+				 		parser.returnError(eleft+1,eright+1);
+				 :}|
+				 error:e{:
+				 	System.out.println("Fixing");
+				 :} BODY RETURN RightKey;
+Params ::= VariableType VariableName| Params Delimeter VariableType VariableName;
 ParamsOrEmpty ::= Params|;
-RETURN ::= Return leftValue EOL | ;
+RETURN ::= Return leftValue EOL;
 
 /*Gramatica para declaraciones y asignaciones*/
-Declaration ::= Type Assignment;
-Assignment ::= VariableName AssignmentOperator leftValue MultipleAssignment|VariableName MultipleAssignment;
-SingleAssignment ::= VariableName AssignmentOperator leftValue;
-MultipleAssignment ::= Delimeter Assignment|;
-leftValue ::= AddSub|BooleanValue|STRING|CALL;
+Declaration ::= VariableType Assignment EOL;
+Assignment ::= VariableName AssignmentOperator leftValue | Assignment Delimeter VariableName AssignmentOperator leftValue|
+			   VariableName| Assignment Delimeter VariableName; 
+leftValue ::= AddSub|BooleanValue|STRING|CALL|ArrayAssignment;
 AssignmentOperator ::= Assign | PlusEqual | MinusEqual | MultEqual | DivEqual;
-
+VariableType ::= Type | ArrayType; 
+ArrayAssignment ::= Type LeftBracket AddSub RightBracket | LeftBracket Element RightBracket;
+Element ::= leftValue | Element Delimeter leftValue;
+SingleAssignment ::= VariableName AssignmentOperator leftValue EOL;
 
 /*Gramatica para switch*/
-SWITCH ::= Switch leftParenthesis VariableName rightParenthesis LeftKey CASE Case Default TwoPoints BODY Endcase EOL RightKey;
-CASE ::= CASE Case CaseValues TwoPoints BODY Endcase EOL|;
-CaseValues ::= AddSub|BooleanValue|STRING;
+SWITCH ::= Switch  ComparisonSwitch LeftKey  CASE RightKey|
+			Switch error:e{:
+				System.out.println("Switch");
+				parser.switchError(eleft + 1, eright + 1);
+			:} CASE RightKey;
+ComparisonSwitch ::= leftParenthesis VariableName rightParenthesis;
+CaseHeader ::=	Case CaseValues TwoPoints;
+CaseEnding ::= BODY Endcase EOL|
+				BODY error:e{:
+					System.out.println("Case ending");
+					parser.caseEndingError(eleft+1, eright+1);
+				:}; 
+CASE ::= CASE  CaseHeader CaseEnding|
+				error:e{:
+					System.out.println("CaseHeader");
+					parser.caseHeaderError(eleft+1, eright+1);
+				:} CaseEnding|;
+CaseValues ::= Number|STRING|Default;
 
 /*Gramatica para if*/
-IF ::= If leftParenthesis Comparison rightParenthesis Then BODY ELSEIF Endif;
-ELSEIF ::= Elseif leftParenthesis Comparison rightParenthesis Then BODY  ELSEIF | Else BODY |;
+IF ::= If ComparisonInParenthesis WhileForBody ELSEIF;
+ELSEIF ::= Elseif ComparisonInParenthesis WhileForBody ELSEIF|Else WhileForBody|;
 
 /*Gramatica para operaciones matematicas*/
-AddSub ::= AddSub AddOP MultDiv | AddSub SubOP MultDiv | MultDiv;
-MultDiv ::= MultDiv MultOP ArithmeticOperation | MultDiv DivOP ArithmeticOperation | ArithmeticOperation;  
-ArithmeticOperation ::= VariableName | Number | leftParenthesis AddSub rightParenthesis;
+AddSub ::= MultDiv MultipleAddSub;
+MultipleAddSub ::= AddOP MultDiv MultipleAddSub | SubOP MultDiv MultipleAddSub|;
+MultDiv ::= ArithmeticOperation MultipleMultDiv;
+MultipleMultDiv ::= MultOP ArithmeticOperation MultipleMultDiv| DivOP ArithmeticOperation MultipleMultDiv|;
+ArithmeticOperation ::= VariableName| Number|leftParenthesis AddSub rightParenthesis;  
 
 /*Gramatica para comparaciones*/
+ComparisonInParenthesis ::= leftParenthesis Comparison rightParenthesis;
 Comparison ::= leftValue RelationalOperator leftValue MultipleComparison;
 MultipleComparison ::= AndOr Comparison|;
 AndOr ::= And|Or;
-RelationalOperator ::= Equal | NotEqual | GreaterThan | LessThan | GreaterEqual | LessEqual;
+RelationalOperator ::=Equal | NotEqual | GreaterThan | LessThan | GreaterEqual | LessEqual;
 
 /*Gramatica para for*/
-FOR ::= For leftParenthesis Type VariableName Delimeter AddSub ThreePoints AddSub Delimeter AddSub rightParenthesis LeftKey BODY RightKey;
- 
+FOR ::= For paramsFor WhileForBody;
+paramsFor ::= leftParenthesis  declarationFor Delimeter rangeFor EOL AddSub rightParenthesis;
+declarationFor ::= Type VariableName; 
+rangeFor ::= AddSub ThreePoints AddSub ;
+
 /*Gramatica para while*/
-WHILE ::= While leftParenthesis Comparison rightParenthesis LeftKey BODY RightKey;
+WHILE ::= While ComparisonInParenthesis WhileForBody;
+WhileForBody ::=  LeftKey BODY RightKey|
+				  LeftKey BODY error:e{:
+				  		System.out.println("key2");
+				  		parser.printError(eleft+1, eright+1, "Missing '}'");
+				  :};

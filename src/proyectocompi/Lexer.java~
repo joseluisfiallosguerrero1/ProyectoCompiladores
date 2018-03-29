@@ -177,12 +177,13 @@ class Lexer implements java_cup.runtime.Scanner {
     "\2\22\1\23\1\24\1\25\1\0\1\4\1\26\14\4"+
     "\1\27\2\4\1\30\4\4\1\17\1\31\1\32\1\33"+
     "\10\4\1\34\7\4\1\35\3\4\1\36\1\37\1\4"+
-    "\1\40\1\41\5\4\1\42\1\43\3\4\1\44\4\4"+
-    "\1\45\3\4\1\46\1\47\2\4\1\50\1\51\2\4"+
-    "\1\52\2\4\1\53\1\4\1\54\1\55";
+    "\1\40\1\41\5\4\1\42\1\43\2\4\1\0\1\4"+
+    "\1\44\4\4\1\45\3\4\1\46\1\47\1\50\2\4"+
+    "\1\51\1\52\2\4\1\53\2\4\1\54\1\4\1\55"+
+    "\1\56";
 
   private static int [] zzUnpackAction() {
-    int [] result = new int[127];
+    int [] result = new int[129];
     int offset = 0;
     offset = zzUnpackAction(ZZ_ACTION_PACKED_0, offset, result);
     return result;
@@ -217,15 +218,16 @@ class Lexer implements java_cup.runtime.Scanner {
     "\0\212\0\u0702\0\u0730\0\u0142\0\u075e\0\u078c\0\u07ba\0\u07e8"+
     "\0\212\0\212\0\212\0\u0142\0\u0816\0\u0844\0\u0872\0\u08a0"+
     "\0\u08ce\0\u08fc\0\u092a\0\u0958\0\u0142\0\u0986\0\u09b4\0\u09e2"+
-    "\0\u0a10\0\u0a3e\0\u0a6c\0\u0a9a\0\u0142\0\u0ac8\0\u0af6\0\u0b24"+
-    "\0\u0142\0\u0142\0\u0b52\0\u0142\0\u0b80\0\u0bae\0\u0bdc\0\u0c0a"+
-    "\0\u0c38\0\u0c66\0\u0142\0\u0142\0\u0c94\0\u0cc2\0\u0cf0\0\u0142"+
-    "\0\u0d1e\0\u0d4c\0\u0d7a\0\u0da8\0\u0142\0\u0dd6\0\u0e04\0\u0e32"+
-    "\0\u0142\0\u0142\0\u0e60\0\u0e8e\0\u0142\0\u0142\0\u0ebc\0\u0eea"+
-    "\0\u0142\0\u0f18\0\u0f46\0\u0142\0\u0f74\0\u0142\0\u0142";
+    "\0\u0a10\0\u0a3e\0\u0a6c\0\u0a9a\0\u0ac8\0\u0af6\0\u0b24\0\u0b52"+
+    "\0\u0142\0\u0142\0\u0b80\0\u0142\0\u0bae\0\u0bdc\0\u0c0a\0\u0c38"+
+    "\0\u0c66\0\u0c94\0\u0142\0\u0142\0\u0cc2\0\u0cf0\0\u0d1e\0\u0d4c"+
+    "\0\u0142\0\u0d7a\0\u0da8\0\u0dd6\0\u0e04\0\u0142\0\u0e32\0\u0e60"+
+    "\0\u0e8e\0\u0142\0\u0142\0\212\0\u0ebc\0\u0eea\0\u0142\0\u0142"+
+    "\0\u0f18\0\u0f46\0\u0142\0\u0f74\0\u0fa2\0\u0142\0\u0fd0\0\u0142"+
+    "\0\u0142";
 
   private static int [] zzUnpackRowMap() {
-    int [] result = new int[127];
+    int [] result = new int[129];
     int offset = 0;
     offset = zzUnpackRowMap(ZZ_ROWMAP_PACKED_0, offset, result);
     return result;
@@ -318,44 +320,45 @@ class Lexer implements java_cup.runtime.Scanner {
     "\6\10\1\125\11\10\2\0\4\10\13\0\3\10\4\0"+
     "\2\10\4\0\5\10\1\145\12\10\2\0\4\10\13\0"+
     "\3\10\4\0\2\10\4\0\13\10\1\146\4\10\2\0"+
-    "\4\10\13\0\3\10\4\0\2\10\4\0\12\10\1\147"+
-    "\5\10\2\0\4\10\13\0\3\10\4\0\2\10\4\0"+
-    "\16\10\1\150\1\10\2\0\4\10\13\0\3\10\4\0"+
-    "\2\10\4\0\13\10\1\151\4\10\2\0\4\10\13\0"+
-    "\3\10\4\0\2\10\4\0\6\10\1\152\11\10\2\0"+
     "\4\10\13\0\3\10\4\0\2\10\4\0\20\10\2\0"+
-    "\1\10\1\153\2\10\13\0\3\10\4\0\2\10\4\0"+
-    "\12\10\1\154\5\10\2\0\4\10\13\0\3\10\4\0"+
-    "\2\10\4\0\11\10\1\155\6\10\2\0\4\10\13\0"+
-    "\3\10\4\0\2\10\4\0\5\10\1\156\12\10\2\0"+
-    "\4\10\13\0\3\10\4\0\2\10\4\0\16\10\1\157"+
-    "\1\10\2\0\4\10\13\0\3\10\4\0\2\10\4\0"+
-    "\17\10\1\160\2\0\4\10\13\0\3\10\4\0\2\10"+
-    "\4\0\10\10\1\161\7\10\2\0\4\10\13\0\3\10"+
+    "\4\10\4\0\1\147\6\0\3\10\4\0\2\10\4\0"+
+    "\12\10\1\150\5\10\2\0\4\10\13\0\3\10\4\0"+
+    "\2\10\4\0\16\10\1\151\1\10\2\0\4\10\13\0"+
+    "\3\10\4\0\2\10\4\0\13\10\1\152\4\10\2\0"+
+    "\4\10\13\0\3\10\4\0\2\10\4\0\6\10\1\153"+
+    "\11\10\2\0\4\10\13\0\3\10\4\0\2\10\4\0"+
+    "\20\10\2\0\1\10\1\154\2\10\13\0\3\10\4\0"+
+    "\2\10\4\0\12\10\1\155\5\10\2\0\4\10\13\0"+
+    "\3\10\4\0\2\10\4\0\11\10\1\156\6\10\2\0"+
+    "\4\10\13\0\3\10\4\0\2\10\4\0\5\10\1\157"+
+    "\12\10\2\0\4\10\13\0\3\10\4\0\2\10\4\0"+
+    "\16\10\1\160\1\10\2\0\4\10\13\0\3\10\4\0"+
+    "\2\10\4\0\17\10\1\161\2\0\4\10\13\0\3\10"+
     "\4\0\2\10\4\0\10\10\1\162\7\10\2\0\4\10"+
-    "\13\0\3\10\4\0\2\10\4\0\7\10\1\163\10\10"+
-    "\2\0\4\10\13\0\3\10\4\0\2\10\4\0\10\10"+
-    "\1\164\7\10\2\0\4\10\13\0\3\10\4\0\2\10"+
-    "\4\0\16\10\1\165\1\10\2\0\4\10\13\0\3\10"+
-    "\4\0\2\10\4\0\11\10\1\166\6\10\2\0\4\10"+
-    "\13\0\3\10\4\0\2\10\4\0\14\10\1\167\3\10"+
-    "\2\0\4\10\13\0\3\10\4\0\2\10\4\0\20\10"+
-    "\2\0\1\10\1\170\2\10\13\0\3\10\4\0\2\10"+
-    "\4\0\20\10\2\0\4\10\13\0\2\10\1\125\4\0"+
-    "\2\10\4\0\15\10\1\171\2\10\2\0\4\10\13\0"+
-    "\3\10\4\0\2\10\4\0\13\10\1\172\4\10\2\0"+
-    "\4\10\13\0\3\10\4\0\2\10\4\0\12\10\1\173"+
-    "\5\10\2\0\4\10\13\0\3\10\4\0\2\10\4\0"+
-    "\10\10\1\174\7\10\2\0\4\10\13\0\3\10\4\0"+
-    "\2\10\4\0\20\10\2\0\3\10\1\175\13\0\3\10"+
-    "\4\0\2\10\4\0\5\10\1\176\12\10\2\0\4\10"+
-    "\13\0\3\10\4\0\2\10\4\0\16\10\1\125\1\10"+
-    "\2\0\4\10\13\0\3\10\4\0\2\10\4\0\16\10"+
-    "\1\177\1\10\2\0\4\10\13\0\3\10\4\0\2\10"+
-    "\1\0";
+    "\13\0\3\10\4\0\2\10\4\0\10\10\1\163\7\10"+
+    "\2\0\4\10\13\0\3\10\4\0\2\10\37\0\1\164"+
+    "\22\0\7\10\1\165\10\10\2\0\4\10\13\0\3\10"+
+    "\4\0\2\10\4\0\10\10\1\166\7\10\2\0\4\10"+
+    "\13\0\3\10\4\0\2\10\4\0\16\10\1\167\1\10"+
+    "\2\0\4\10\13\0\3\10\4\0\2\10\4\0\11\10"+
+    "\1\170\6\10\2\0\4\10\13\0\3\10\4\0\2\10"+
+    "\4\0\14\10\1\171\3\10\2\0\4\10\13\0\3\10"+
+    "\4\0\2\10\4\0\20\10\2\0\1\10\1\172\2\10"+
+    "\13\0\3\10\4\0\2\10\4\0\20\10\2\0\4\10"+
+    "\13\0\2\10\1\125\4\0\2\10\4\0\15\10\1\173"+
+    "\2\10\2\0\4\10\13\0\3\10\4\0\2\10\4\0"+
+    "\13\10\1\174\4\10\2\0\4\10\13\0\3\10\4\0"+
+    "\2\10\4\0\12\10\1\175\5\10\2\0\4\10\13\0"+
+    "\3\10\4\0\2\10\4\0\10\10\1\176\7\10\2\0"+
+    "\4\10\13\0\3\10\4\0\2\10\4\0\20\10\2\0"+
+    "\3\10\1\177\13\0\3\10\4\0\2\10\4\0\5\10"+
+    "\1\200\12\10\2\0\4\10\13\0\3\10\4\0\2\10"+
+    "\4\0\16\10\1\125\1\10\2\0\4\10\13\0\3\10"+
+    "\4\0\2\10\4\0\16\10\1\201\1\10\2\0\4\10"+
+    "\13\0\3\10\4\0\2\10\1\0";
 
   private static int [] zzUnpackTrans() {
-    int [] result = new int[4002];
+    int [] result = new int[4094];
     int offset = 0;
     offset = zzUnpackTrans(ZZ_TRANS_PACKED_0, offset, result);
     return result;
@@ -395,10 +398,10 @@ class Lexer implements java_cup.runtime.Scanner {
   private static final String ZZ_ATTRIBUTE_PACKED_0 =
     "\1\1\2\0\1\11\17\1\1\11\1\1\10\11\6\1"+
     "\2\11\1\1\3\11\1\0\16\1\1\11\7\1\3\11"+
-    "\74\1";
+    "\43\1\1\0\14\1\1\11\15\1";
 
   private static int [] zzUnpackAttribute() {
-    int [] result = new int[127];
+    int [] result = new int[129];
     int offset = 0;
     offset = zzUnpackAttribute(ZZ_ATTRIBUTE_PACKED_0, offset, result);
     return result;
@@ -872,19 +875,19 @@ class Lexer implements java_cup.runtime.Scanner {
           case 1: 
             { 
             }
-          case 46: break;
+          case 47: break;
           case 2: 
             { System.out.println("Error en la linea: " + (yyline + 1) + " columna " + (yycolumn+1) + " Character Not Found: " + yytext());
             }
-          case 47: break;
+          case 48: break;
           case 3: 
             { return token(sym.TwoPoints, new String(yytext()));
             }
-          case 48: break;
+          case 49: break;
           case 4: 
             { return token(sym.VariableName,new String(yytext()));
             }
-          case 49: break;
+          case 50: break;
           case 5: 
             { if("+".equals(yytext())){
 								return token(sym.AddOP, new String(yytext()));
@@ -896,45 +899,45 @@ class Lexer implements java_cup.runtime.Scanner {
 								return token(sym.DivOP, new String(yytext()));
 							}
             }
-          case 50: break;
+          case 51: break;
           case 6: 
             { System.out.println("Apostrophe "+ yytext());
 					string = "";
 					yybegin(STRING);
             }
-          case 51: break;
+          case 52: break;
           case 7: 
             { return token(sym.EOL, new String(yytext()));
             }
-          case 52: break;
-          case 8: 
-            { System.out.println("leftBrack "+ yytext());
-            }
           case 53: break;
-          case 9: 
-            { System.out.println("rightBrack "+ yytext());
+          case 8: 
+            { return token(sym.LeftBracket, new String(yytext()));
             }
           case 54: break;
+          case 9: 
+            { return token(sym.RightBracket, new String(yytext()));
+            }
+          case 55: break;
           case 10: 
             { return token(sym.LeftKey, new String(yytext()));
             }
-          case 55: break;
+          case 56: break;
           case 11: 
             { return token(sym.RightKey, new String(yytext()));
             }
-          case 56: break;
+          case 57: break;
           case 12: 
             { return token(sym.leftParenthesis, new String(yytext()));
             }
-          case 57: break;
+          case 58: break;
           case 13: 
             { return token(sym.rightParenthesis, new String(yytext()));
             }
-          case 58: break;
+          case 59: break;
           case 14: 
             { return token(sym.Delimeter, new String(yytext()));
             }
-          case 59: break;
+          case 60: break;
           case 15: 
             { if("==".equals(yytext())){
 										return token(sym.Equal, new String(yytext()));
@@ -950,29 +953,29 @@ class Lexer implements java_cup.runtime.Scanner {
 										return token(sym.LessEqual, new String(yytext()));
 									}
             }
-          case 60: break;
+          case 61: break;
           case 16: 
             { return token(sym.Number, new String(yytext()));
             }
-          case 61: break;
+          case 62: break;
           case 17: 
             { System.out.print(yytext());
             }
-          case 62: break;
+          case 63: break;
           case 18: 
             { comment+=yytext();
             }
-          case 63: break;
+          case 64: break;
           case 19: 
             { string+=yytext();
             }
-          case 64: break;
+          case 65: break;
           case 20: 
             { System.out.println("Apostrophe: " + yytext());
 			yybegin(YYINITIAL);
                         return token(sym.STRING,string);
             }
-          case 65: break;
+          case 66: break;
           case 21: 
             { if(":=".equals(yytext())){
 										return token(sym.Assign, new String(yytext()));
@@ -986,107 +989,111 @@ class Lexer implements java_cup.runtime.Scanner {
 										return token(sym.DivEqual, new String(yytext()));
 									}
             }
-          case 66: break;
+          case 67: break;
           case 22: 
             { return token(sym.Or, new String(yytext()));
             }
-          case 67: break;
+          case 68: break;
           case 23: 
             { System.out.println("Inicio de Comentario: " + yytext());
 				yybegin(COMMENT);
             }
-          case 68: break;
+          case 69: break;
           case 24: 
             { return token(sym.If, new String(yytext()));
             }
-          case 69: break;
+          case 70: break;
           case 25: 
             { System.out.println("Comentario: " + comment);
 				System.out.println("Fin de comentario: " + yytext());
 				comment = "";
 				yybegin(YYINITIAL);
             }
-          case 70: break;
+          case 71: break;
           case 26: 
             { return token(sym.ThreePoints, new String(yytext()));
             }
-          case 71: break;
+          case 72: break;
           case 27: 
             { return token(sym.And, new String(yytext()));
             }
-          case 72: break;
+          case 73: break;
           case 28: 
             { return token(sym.For,new String(yytext()));
             }
-          case 73: break;
+          case 74: break;
           case 29: 
             { return token(sym.Type,new String(yytext()));
             }
-          case 74: break;
+          case 75: break;
           case 30: 
             { return token(sym.BooleanValue, new String(yytext()));
             }
-          case 75: break;
+          case 76: break;
           case 31: 
             { return token(sym.Then, new String(yytext()));
             }
-          case 76: break;
+          case 77: break;
           case 32: 
             { System.out.println("Read: " + yytext());
             }
-          case 77: break;
+          case 78: break;
           case 33: 
             { return token(sym.Else, new String(yytext()));
             }
-          case 78: break;
+          case 79: break;
           case 34: 
             { return token(sym.Call, new String(yytext()));
             }
-          case 79: break;
+          case 80: break;
           case 35: 
             { return token(sym.Case, new String(yytext()));
             }
-          case 80: break;
+          case 81: break;
           case 36: 
             { return token(sym.Main, new String(yytext()));
             }
-          case 81: break;
+          case 82: break;
           case 37: 
             { return token(sym.Endif, new String(yytext()));
             }
-          case 82: break;
+          case 83: break;
           case 38: 
             { System.out.println("Write: " + yytext());
             }
-          case 83: break;
+          case 84: break;
           case 39: 
             { return token(sym.While,new String(yytext()));
             }
-          case 84: break;
-          case 40: 
-            { return token(sym.Return, new String(yytext()));
-            }
           case 85: break;
-          case 41: 
-            { return token(sym.Elseif, new String(yytext()));
+          case 40: 
+            { return token(sym.ArrayType, new String(yytext()));
             }
           case 86: break;
-          case 42: 
-            { return token(sym.Switch, new String(yytext()));
+          case 41: 
+            { return token(sym.Return, new String(yytext()));
             }
           case 87: break;
-          case 43: 
-            { return token(sym.Endcase, new String(yytext()));
+          case 42: 
+            { return token(sym.Elseif, new String(yytext()));
             }
           case 88: break;
-          case 44: 
-            { return token(sym.Default, new String(yytext()));
+          case 43: 
+            { return token(sym.Switch, new String(yytext()));
             }
           case 89: break;
-          case 45: 
-            { return token(sym.Function, new String(yytext()));
+          case 44: 
+            { return token(sym.Endcase, new String(yytext()));
             }
           case 90: break;
+          case 45: 
+            { return token(sym.Default, new String(yytext()));
+            }
+          case 91: break;
+          case 46: 
+            { return token(sym.Function, new String(yytext()));
+            }
+          case 92: break;
           default:
             zzScanError(ZZ_NO_MATCH);
         }
