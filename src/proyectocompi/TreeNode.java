@@ -94,55 +94,6 @@ public class TreeNode {
         }
         return new TreeNode();
     }
-    
-    public void mostrar(ArrayList gen) {
-        ArrayList general = new ArrayList();
-        TreeNode nodo = new TreeNode("a", null);
-        TreeNode nodo2 = new TreeNode("b", nodo);
-        TreeNode nodo3 = new TreeNode("c", nodo);
-        TreeNode nodo4 = new TreeNode("d", nodo2);
-        TreeNode nodo5 = new TreeNode("e", nodo2);
-        TreeNode nodo6 = new TreeNode("f", nodo3);
-        TreeNode nodo7 = new TreeNode("g", nodo3);
-
-        MyTree miarbol = new MyTree(nodo);
-
-        general.add(nodo);
-        general.add(nodo2);
-        general.add(nodo3);
-        general.add(nodo4);
-        general.add(nodo5);
-        general.add(nodo6);
-        general.add(nodo7);
-        // metodo mostrar ....................
-        int maximo = 0;
-        for (Object object : gen) {
-            if (((TreeNode) object).nivel > maximo) {
-                maximo = ((TreeNode) object).nivel;
-            }
-        }
-        System.out.println("maximo" + maximo);
-        int espacios = 75;
-        for (int i = 0; i <= maximo; i++) {
-            System.out.println("paapaaaaaaa");
-            System.out.println("Nivel " + i);
-            for (int j = 0; j < espacios; j++) {
-                System.out.print(" ");
-            }
-            for (Object object : gen) {
-                if (((TreeNode) object).nivel == i) {
-                    if (((TreeNode) object).nivel != 0) {
-                        System.out.print("Padre = " + ((TreeNode) object).parent.toString() + " valor = " + ((TreeNode) object).toString() + "               ");
-                    } else {
-                        System.out.println(" valor = " + ((TreeNode) object).toString());
-                    }
-                }
-
-            }
-            System.out.println("");
-            espacios = espacios - 10;
-        }
-    }
 
     @Override
     public String toString() {

@@ -29,11 +29,9 @@ public class MyTree {
 
     public void showTree(TreeNode parent, TreeNode node, DefaultTreeModel model, DefaultMutableTreeNode treeNode) {
         if (parent == null) {
-            System.out.println(node.getValue());
             model = new DefaultTreeModel(new DefaultMutableTreeNode(node.getValue()));
             showTree(node, node.getLefterSon(),model,(DefaultMutableTreeNode)model.getRoot());
         } else {
-            System.out.println(node.getValue());
             DefaultMutableTreeNode hijo = new DefaultMutableTreeNode(node.getValue());
             treeNode.add(hijo);
             if (node.hasRightBrother()) {
