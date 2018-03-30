@@ -14,6 +14,8 @@ parser code{:
 	ArrayList<TreeNode> arrayElements = new ArrayList();
 	ArrayList<TreeNode> params = new ArrayList();
 	ArrayList<TreeNode> cases = new ArrayList();
+	ArrayList<TreeNode> comparisons = new ArrayList();
+	ArrayList<TreeNode> ifs = new ArrayList();
 
 	public void report_error(String errorBody, Object info) {
 		next = (Symbol)info;
@@ -286,7 +288,7 @@ MAIN ::= Main leftParenthesis rightParenthesis FunctionBody{:
 BODY ::=  BODY ERROR|
 		  BODY Declaration:D {:parser.body.add((TreeNode)D);:}| 
 		  BODY CALL:C{:parser.body.add((TreeNode)C);:}|  
-		  BODY IF  | 
+		  BODY IF:I {:parser.body.add((TreeNode)I);:}  | 
 		  BODY SWITCH:S {:parser.body.add((TreeNode)S);:} | 
 		  BODY SingleAssignment:SA {:parser.body.add((TreeNode)SA);:}|
 		  BODY FOR|
@@ -496,9 +498,25 @@ CaseValues ::= Number:number {:RESULT = new TreeNode(number.toString(), null);:}
                Default:def{:RESULT = new TreeNode(def.toString(), null);:};
 
 /*Gramatica para if*/
-IF ::= If ComparisonInParenthesis WhileForBody ELSEIF;
-ELSEIF ::= Elseif ComparisonInParenthesis WhileForBody ELSEIF|
-           Else WhileForBody|;
+IF ::= If ComparisonInParenthesis:CP WhileForBody:body ELSEIF{:
+			TreeNode ifNode = new TreeNode("If", null);
+			parser.addNodeToTree(ifNode,(TreeNode)CP);
+			parser.addNodeToTree(ifNode,(TreeNode)body);
+			parser.addMultipleNodes(ifNode,parser.ifs,true);
+			parser.ifs = new ArrayList();
+			RESULT =ifNode;
+	   :};
+ELSEIF ::= Elseif ComparisonInParenthesis:CP WhileForBody:body ELSEIF{:
+				TreeNode elseif = new TreeNode("ElseIf", null);
+				parser.addNodeToTree(elseif,(TreeNode)CP);
+				parser.addNodeToTree(elseif,(TreeNode)body);
+           		parser.ifs.add(elseif);
+	       :}|
+           Else WhileForBody:body{:
+           		TreeNode elseNode = new TreeNode("Else",null);
+           		parser.addNodeToTree(elseNode,(TreeNode)body);
+           		parser.ifs.add(elseNode);
+           :}|;
 
 /*Gramatica para operaciones matematicas*/
 AddSub ::= MultDiv:MD MultipleAddSub:MAS {:
@@ -550,17 +568,45 @@ ArithmeticOperation ::= VariableName:name {:
                         :};  
 
 /*Gramatica para comparaciones*/
-ComparisonInParenthesis ::= leftParenthesis Comparison rightParenthesis;
-Comparison ::= leftValue RelationalOperator leftValue MultipleComparison;
-MultipleComparison ::= AndOr Comparison|;
-AndOr ::= And|
-          Or;
-RelationalOperator ::=Equal | 
-                      NotEqual | 
-                      GreaterThan | 
-                      LessThan | 
-                      GreaterEqual | 
-                      LessEqual;
+ComparisonInParenthesis ::= leftParenthesis Comparison rightParenthesis{:
+									TreeNode condition = new TreeNode("Conditions", null);
+									int contador = -1;
+									if(parser.params.size()>0){
+										contador = 0;
+									}
+									for(int i = parser.comparisons.size()-1; i >= 0; i--){
+										parser.addNodeToTree(condition,parser.comparisons.get(i));
+										if(contador>-1 && contador<parser.params.size()){
+											parser.addNodeToTree(condition,parser.params.get(contador));
+											contador++;
+										}
+									}
+									parser.params = new ArrayList();
+									parser.comparisons = new ArrayList();
+									RESULT = condition;
+							:};
+Comparison ::= leftValue:LV RelationalOperator:operator leftValue:RV MultipleComparison{:
+						TreeNode comparison = new TreeNode("Comparison",null);
+						TreeNode leftVal = new TreeNode("LeftValue", null);
+						TreeNode rightVal = new TreeNode("RightValue", null);
+						parser.addNodeToTree(comparison,leftVal);
+						parser.addNodeToTree(comparison,(TreeNode)operator);
+						parser.addNodeToTree(comparison,rightVal);
+						parser.addNodeToTree(leftVal,(TreeNode)LV);
+						parser.addNodeToTree(rightVal,(TreeNode)RV);
+						parser.comparisons.add(comparison);
+				:};
+MultipleComparison ::= AndOr:AO Comparison{:
+							RESULT = AO;
+					   :}|;
+AndOr ::= And{:RESULT = parser.params.add(new TreeNode("AND", null));:}|
+          Or{:RESULT = parser.params.add(new TreeNode("OR", null));:};
+RelationalOperator ::=Equal {:RESULT = new TreeNode("==",null);:}| 
+                      NotEqual {:RESULT = new TreeNode("!=",null);:}| 
+                      GreaterThan {:RESULT = new TreeNode(">",null);:}| 
+                      LessThan {:RESULT = new TreeNode("<",null);:}| 
+                      GreaterEqual {:RESULT = new TreeNode(">=",null);:}| 
+                      LessEqual{:RESULT = new TreeNode("<=",null);:};
 
 /*Gramatica para for*/
 FOR ::= For paramsFor WhileForBody;
@@ -570,7 +616,12 @@ rangeFor ::= AddSub ThreePoints AddSub ;
 
 /*Gramatica para while*/
 WHILE ::= While ComparisonInParenthesis WhileForBody;
-WhileForBody ::=  LeftKey BODY RightKey|
+WhileForBody ::=  LeftKey BODY RightKey{:
+						TreeNode body = new TreeNode("Body", null);
+						parser.addMultipleNodes(body,parser.body,false);
+						parser.body = new ArrayList();
+						RESULT = body;
+				  :}|
 				  LeftKey BODY error:e{:
 				  		System.out.println("key2");
 				  		parser.printError(eleft+1, eright+1, "Missing '}'");

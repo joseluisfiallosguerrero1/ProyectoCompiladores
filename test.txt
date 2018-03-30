@@ -1,14 +1,13 @@
 main(){
-	switch(a){
-		case 1:
-			int a:=b;
-		endcase;
-		case 2:
-		boolean b :=c;
-		endcase;
-		case default:
-		int[] a := int[12];
-		endcase;
+	if(A>B OR A>B AND W>B){
+		int a := true;
+		int a := true;
+	}elseif(C>D AND A>B){
+		int b := false;
+		int a := true;
+	}else{
+		int a := true;
+		int c := false;
 	}
 	return true;
 }
