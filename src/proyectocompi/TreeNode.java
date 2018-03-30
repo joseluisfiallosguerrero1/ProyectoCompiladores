@@ -16,8 +16,9 @@ public class TreeNode {
     TreeNode parent;
     int nivel;
     ArrayList<TreeNode> hijos = new ArrayList();
-
+    
     public TreeNode() {
+        
     }
 
     public TreeNode(Object value, TreeNode Parent) {

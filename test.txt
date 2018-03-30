@@ -1,39 +1,24 @@
 main(){
-	call suma (a,a);
-	int a:= a+a;
-
 	switch(a){
 		case 1:
-			call suma (a,a);
-			int a:= a+a;
+			int a:=b;
+		endcase;
+		case 2:
+		boolean b :=c;
 		endcase;
 		case default:
-			call suma (a,a);
-			int a:= a+a;
+		int[] a := int[12];
 		endcase;
 	}
-
-	if (a>b){
-
-	}elseif(a>b){
-
-	}else{
-
-	}
-
-	for(int a, 1 ... 3;2){
-
-	}
-	
-	call suma (a,a);
-	int a:= a+a;
-	return 1;
+	return true;
 }
 
 function suma(int a, int b):int{
-	call suma (a,a);
-	int a := a+a;
-	return 1;
+	return true;
+}
+
+function suma2(int a, int b):int{
+	return true;
 }
 
 

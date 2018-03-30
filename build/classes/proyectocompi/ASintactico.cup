@@ -1,8 +1,20 @@
 package proyectocompi;	
+import java.util.ArrayList;
 import java_cup.runtime.*;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
 
 parser code{:
+	MyTree tree = new MyTree();
 	Symbol next;
+	TreeNode node = new TreeNode();
+	ArrayList<String> functionNames = new ArrayList();
+	ArrayList<TreeNode> operations = new ArrayList();
+	ArrayList<TreeNode> body = new ArrayList();
+	ArrayList<TreeNode> arrayElements = new ArrayList();
+	ArrayList<TreeNode> params = new ArrayList();
+	ArrayList<TreeNode> cases = new ArrayList();
+
 	public void report_error(String errorBody, Object info) {
 		next = (Symbol)info;
 		System.out.println("Next: " + next.value);
@@ -128,6 +140,22 @@ parser code{:
 		}
 	}
 
+	public void addMultipleNodes(TreeNode node, ArrayList<TreeNode> list,boolean reverse){
+		if(reverse){
+			for(int i = list.size()-1; i >=0; i--){
+				addNodeToTree(node,list.get(i));
+			}
+		}else{
+			for(int i = 0; i < list.size(); i++){
+				addNodeToTree(node,list.get(i));
+			}
+		}
+	}
+	public void addNodeToTree(TreeNode parent, TreeNode node){
+		node.setParent(parent);
+		parent.addSon(node);
+	}
+
 	public void printError(int line, int column, String message){
 		System.out.println("Syntax error in line: " + line + " Column: " + column + 
 					"; "  + message);
@@ -230,21 +258,37 @@ non terminal rangeFor;
 
 
 /*Gramatica del programa*/
-PROGRAM ::= MAIN FUNCTION;
+PROGRAM ::= MAIN:m FUNCTION{:
+					DefaultTreeModel model = new DefaultTreeModel(new DefaultMutableTreeNode());
+					parser.tree = new MyTree(new TreeNode("Program", null));
+					parser.node = (TreeNode)m;
+					parser.addNodeToTree(parser.tree.root, parser.node);
+
+					for(int i = 0; i < parser.functionNames.size(); i++){
+						parser.addNodeToTree(parser.tree.root, new TreeNode(parser.functionNames.get(i),parser.tree.root));
+					}
+
+					parser.tree.showTree(null,parser.tree.root,model,(DefaultMutableTreeNode)model.getRoot());
+					parser.tree.tree.setVisible(true);
+			:};
 
 /*Gramatica para main*/
-MAIN ::= Main leftParenthesis rightParenthesis FunctionBody|
+MAIN ::= Main leftParenthesis rightParenthesis FunctionBody{:
+				TreeNode node = new TreeNode("Main",null);
+				parser.addMultipleNodes(node,parser.body,false);
+				RESULT = node;
+		 :}|
 		 error:e{:
 		 		System.out.println("Missing main");
 		 :} FunctionBody;
 
 /*Gramatica para el body del programa*/
 BODY ::=  BODY ERROR|
-		  BODY Declaration| 
-		  BODY CALL |  
+		  BODY Declaration:D {:parser.body.add((TreeNode)D);:}| 
+		  BODY CALL:C{:parser.body.add((TreeNode)C);:}|  
 		  BODY IF  | 
-		  BODY SWITCH | 
-		  BODY SingleAssignment|
+		  BODY SWITCH:S {:parser.body.add((TreeNode)S);:} | 
+		  BODY SingleAssignment:SA {:parser.body.add((TreeNode)SA);:}|
 		  BODY FOR|
 		  BODY WHILE|;
 
@@ -265,14 +309,30 @@ ERROR ::= Call error:e{:
 		  :} WhileForBody;
 
 /*Gramatica para llamados a funciones*/
-CALL ::= Call VariableName CallHeader EOL;
+CALL ::= Call VariableName:name CallHeader EOL {:
+		 		TreeNode node = new TreeNode("Call",null);
+		 		TreeNode node2 = new TreeNode("FunctionName",null);
+		 		TreeNode node3 = new TreeNode("FunctionParams",null);
+		 		TreeNode nameNode = new TreeNode(name.toString(),null);
+		 		parser.addNodeToTree(node,node2);
+		 		parser.addNodeToTree(node2,nameNode);
+
+		 		if(parser.params.size() > 0){
+		 			parser.addNodeToTree(node,node3);
+		 			parser.addMultipleNodes(node3,parser.params,false);
+		 		}
+		 		RESULT = node;
+		 		parser.params = new ArrayList();
+		 :};
 CallHeader ::= leftParenthesis CallParamsOrEmpty rightParenthesis;
-CallParams ::= leftValue | 
-			   CallParams Delimeter leftValue;
+CallParams ::= leftValue:LV {:parser.params.add((TreeNode)LV);:} | 
+			   CallParams Delimeter leftValue:LV {:parser.params.add((TreeNode)LV);:};
 CallParamsOrEmpty ::= CallParams|;
 
 /*Gramatica para funciones*/
-FUNCTION ::= Function VariableName FunctionHeader  FunctionBody FUNCTION|
+FUNCTION ::= Function VariableName:functionName FunctionHeader  FunctionBody FUNCTION:F{:
+					parser.functionNames.add(functionName.toString());
+			 :}|
 			 error:e{:
 			 	System.out.println("Function");
 			 	parser.functionError(eleft+1,eright+1,"Function");
@@ -286,7 +346,7 @@ FunctionHeader ::= leftParenthesis ParamsOrEmpty rightParenthesis TwoPoints Vari
 				   		System.out.println("Type");
 			 			parser.functionError(eleft+1,eright+1,"Type");
 				   	:};
-FunctionBody ::= LeftKey BODY RETURN RightKey|
+FunctionBody ::= LeftKey BODY:body RETURN RightKey|
 				 LeftKey BODY error:e{:
 				 		System.out.println("return");
 				 		parser.returnError(eleft+1,eright+1);
@@ -300,50 +360,140 @@ ParamsOrEmpty ::= Params|;
 RETURN ::= Return leftValue EOL;
 
 /*Gramatica para declaraciones y asignaciones*/
-Declaration ::= VariableType Assignment EOL;
-Assignment ::= VariableName AssignmentOperator leftValue | 
+Declaration ::= VariableType:VType Assignment:A EOL {:
+					TreeNode declaration = new TreeNode("Declaration",null);
+					TreeNode type = new TreeNode("Type",null);
+					TreeNode typeNode = new TreeNode(VType.toString(),null);
+					parser.addNodeToTree(declaration,type);
+					parser.addNodeToTree(declaration,(TreeNode)A);
+					parser.addNodeToTree(type,typeNode);
+					RESULT = declaration;
+				:};
+Assignment ::= VariableName:name AssignmentOperator:operator leftValue:leftVal {:
+					TreeNode assignment = new TreeNode("Assignment",null);
+					TreeNode VName = new TreeNode("id",null);
+					TreeNode value = new TreeNode("value",null);
+					TreeNode nameNode = new TreeNode(name.toString(),null);
+					parser.addNodeToTree(assignment,VName);
+					parser.addNodeToTree(assignment,(TreeNode)operator);
+					parser.addNodeToTree(assignment,value);
+					parser.addNodeToTree(VName,nameNode);
+					parser.addNodeToTree(value,(TreeNode)leftVal);
+					RESULT = assignment;
+			   :}| 
                Assignment Delimeter VariableName AssignmentOperator leftValue|
 			   VariableName| 
 			   Assignment Delimeter VariableName; 
-leftValue ::= AddSub|
-              BooleanValue|
-              STRING|
-              CALL|
-              ArrayAssignment;
-AssignmentOperator ::= Assign | 
-                       PlusEqual | 
-                       MinusEqual | 
-                       MultEqual | 
-                       DivEqual;
-VariableType ::= Type | 
-                 ArrayType; 
-ArrayAssignment ::= Type LeftBracket AddSub RightBracket | 
-                    LeftBracket Element RightBracket;
-Element ::= leftValue | 
-            Element Delimeter leftValue;
-SingleAssignment ::= VariableName AssignmentOperator leftValue EOL;
+leftValue ::= AddSub:AS{:
+					RESULT = AS;
+			  :}|
+              BooleanValue:Boolean{:
+              		TreeNode Bvalue = new TreeNode("Bolean",null);
+              		TreeNode value = new TreeNode(Boolean.toString(),null); 
+              		parser.addNodeToTree(Bvalue,value);
+              		RESULT = Bvalue;
+              :}|
+              STRING:word{:
+              		TreeNode Svalue = new TreeNode("String",null);
+              		TreeNode value = new TreeNode(word.toString(),null); 
+              		parser.addNodeToTree(Svalue,value);
+              		RESULT = Svalue;
+              :}|
+              CALL:C{:RESULT = C;:}|
+              ArrayAssignment:AA {:RESULT = AA;:};
+AssignmentOperator ::= Assign {:RESULT = new TreeNode(":=",null);:} | 
+                       PlusEqual {:RESULT = new TreeNode("+=",null);:}| 
+                       MinusEqual {:RESULT = new TreeNode("-=",null);:}| 
+                       MultEqual {:RESULT = new TreeNode("*=",null);:}| 
+                       DivEqual{:RESULT = new TreeNode("/=",null);:};
+VariableType ::= Type:t {:RESULT = new TreeNode(t.toString(),null);:} | 
+                 ArrayType:t {:RESULT = new TreeNode(t.toString(),null);:}; 
+ArrayAssignment ::= Type:type LeftBracket AddSub:size RightBracket{:
+						TreeNode node = new TreeNode("ArrayAssignment",null);
+						TreeNode typeNode = new TreeNode("ArrayType",null);
+						TreeNode sizeNode = new TreeNode("ArraySize",null);
+						TreeNode node1 = new TreeNode(type.toString(),null);
+						TreeNode node2 = (TreeNode)size;
+						parser.addNodeToTree(node,typeNode);
+						parser.addNodeToTree(node,sizeNode);
+						parser.addNodeToTree(typeNode,node1);
+						parser.addNodeToTree(sizeNode,node2);
+						RESULT = node;
+					:} | 
+                    LeftBracket Element RightBracket{:
+                    	TreeNode node = new TreeNode("ArrayAssignment",null);
+                    	TreeNode node2 = new TreeNode("Elements",null);
+                    	parser.addNodeToTree(node,node2);
+                    	parser.addMultipleNodes(node2,parser.arrayElements,false);
+                    	RESULT = node;
+                    	parser.arrayElements = new ArrayList();
+                    :};
+Element ::= leftValue:LV {:
+				parser.arrayElements.add((TreeNode)LV);
+			:} | 
+            Element Delimeter leftValue:LV {:
+            	parser.arrayElements.add((TreeNode)LV);
+            :};
+SingleAssignment ::= VariableName:name AssignmentOperator:operator leftValue:LV EOL {:
+					 		TreeNode node = new TreeNode("Assignment",null);
+					 		TreeNode id = new TreeNode("id", null);
+					 		TreeNode value = new TreeNode("value", null);
+					 		TreeNode nameNode = new TreeNode(name.toString(), null);
+					 		TreeNode operatorNode = new TreeNode(operator.toString(), null);
+					 		parser.addNodeToTree(node,id);
+					 		parser.addNodeToTree(node,operatorNode);
+					 		parser.addNodeToTree(node,value);
+					 		parser.addNodeToTree(id,nameNode);
+					 		parser.addNodeToTree(value,(TreeNode)LV);
+					 		RESULT = node;
+					 :};
 
 /*Gramatica para switch*/
-SWITCH ::= Switch  ComparisonSwitch LeftKey  CASE RightKey|
+SWITCH ::= Switch  ComparisonSwitch:variable LeftKey  CASE RightKey{:
+				TreeNode node = new TreeNode("Switch",null);
+				parser.addNodeToTree(node, (TreeNode)variable);
+				parser.addMultipleNodes(node,parser.cases,false);
+				RESULT = node;
+				parser.cases = new ArrayList();
+			:}|
 			Switch error:e{:
 				System.out.println("Switch");
 				parser.switchError(eleft + 1, eright + 1);
 			:} CASE RightKey;
-ComparisonSwitch ::= leftParenthesis VariableName rightParenthesis;
-CaseHeader ::=	Case CaseValues TwoPoints;
-CaseEnding ::= BODY Endcase EOL|
+ComparisonSwitch ::= leftParenthesis VariableName:name rightParenthesis {:
+							TreeNode node = new TreeNode("switchVariable",null);
+							TreeNode nameNode = new TreeNode(name.toString(),null);
+							parser.addNodeToTree(node,nameNode);
+							RESULT = node;
+					 :};
+CaseHeader ::=	Case CaseValues:value TwoPoints{:
+					TreeNode node = new TreeNode("Value", null);
+					parser.addNodeToTree(node,(TreeNode)value);
+					RESULT = node;
+				:};
+CaseEnding ::= BODY Endcase EOL{:
+					TreeNode body = new TreeNode("Body", null);
+					parser.addMultipleNodes(body,parser.body,false);
+					RESULT = body;
+					parser.body = new ArrayList();
+				:}|
 				BODY error:e{:
 					System.out.println("Case ending");
 					parser.caseEndingError(eleft+1, eright+1);
 				:}; 
-CASE ::= CASE  CaseHeader CaseEnding|
+CASE ::= CASE  CaseHeader:header CaseEnding:ending{:
+				TreeNode node = new TreeNode("Case",null);
+				parser.addNodeToTree(node,(TreeNode)header);
+				parser.addNodeToTree(node,(TreeNode)ending);
+				parser.cases.add(node);
+		 :}|
 				error:e{:
 					System.out.println("CaseHeader");
 					parser.caseHeaderError(eleft+1, eright+1);
 				:} CaseEnding|;
-CaseValues ::= Number|
-               STRING|
-               Default;
+CaseValues ::= Number:number {:RESULT = new TreeNode(number.toString(), null);:}|
+               STRING:string{:RESULT = new TreeNode(string.toString(), null);:}|
+               Default:def{:RESULT = new TreeNode(def.toString(), null);:};
 
 /*Gramatica para if*/
 IF ::= If ComparisonInParenthesis WhileForBody ELSEIF;
@@ -351,15 +501,53 @@ ELSEIF ::= Elseif ComparisonInParenthesis WhileForBody ELSEIF|
            Else WhileForBody|;
 
 /*Gramatica para operaciones matematicas*/
-AddSub ::= MultDiv MultipleAddSub;
-MultipleAddSub ::= AddOP MultDiv MultipleAddSub | 
-                   SubOP MultDiv MultipleAddSub|;
-MultDiv ::= ArithmeticOperation MultipleMultDiv;
-MultipleMultDiv ::= MultOP ArithmeticOperation MultipleMultDiv| 
-                    DivOP ArithmeticOperation MultipleMultDiv|;
-ArithmeticOperation ::= VariableName| 
-                        Number|
-                        leftParenthesis AddSub rightParenthesis;  
+AddSub ::= MultDiv:MD MultipleAddSub:MAS {:
+		   		parser.operations.add((TreeNode)MD);
+				TreeNode AddSub = new TreeNode("ArithmeticOperation", null);
+				parser.addMultipleNodes(AddSub,parser.operations,true);
+				RESULT = AddSub;
+				parser.operations = new ArrayList();
+		   :};
+MultipleAddSub ::= AddOP MultDiv:MD MultipleAddSub:MAS {:
+                   		parser.operations.add((TreeNode)MD);
+                   		parser.operations.add(new TreeNode("+",null));
+                   :}| 
+                   SubOP MultDiv:MD MultipleAddSub {:
+                   		parser.operations.add((TreeNode)MD);
+                   		parser.operations.add(new TreeNode("-",null));
+                   :}|;
+MultDiv ::= ArithmeticOperation:AOP MultipleMultDiv {:
+				parser.operations.add((TreeNode)AOP);
+				TreeNode multDiv = new TreeNode("MultDiv", null);
+				parser.addMultipleNodes(multDiv,parser.operations,true);
+				RESULT = multDiv;
+				parser.operations = new ArrayList();
+			:};
+MultipleMultDiv ::= MultOP ArithmeticOperation:AOP MultipleMultDiv {:
+						parser.operations.add((TreeNode)AOP);
+						parser.operations.add(new TreeNode("*",null));
+					:}| 
+                    DivOP ArithmeticOperation:AOP MultipleMultDiv{:
+						parser.operations.add((TreeNode)AOP);
+						parser.operations.add(new TreeNode("/",null));
+					:}|;
+ArithmeticOperation ::= VariableName:name {:
+							TreeNode idNode = new TreeNode("id", null);
+							TreeNode nameNode = new TreeNode(name.toString(),null);
+							parser.addNodeToTree(idNode,nameNode);  
+							RESULT = idNode;
+						:}| 
+                        Number:number {:
+                        	TreeNode idNode = new TreeNode("number", null);
+							TreeNode nameNode = new TreeNode(number.toString(),null);
+							parser.addNodeToTree(idNode,nameNode);
+                        	RESULT = idNode;
+						:}|
+                        leftParenthesis AddSub:AS rightParenthesis{:
+                        	TreeNode parenthesis = new TreeNode("Parenthesis", null);
+                        	parser.addNodeToTree(parenthesis,(TreeNode)AS);
+                        	RESULT = parenthesis;
+                        :};  
 
 /*Gramatica para comparaciones*/
 ComparisonInParenthesis ::= leftParenthesis Comparison rightParenthesis;

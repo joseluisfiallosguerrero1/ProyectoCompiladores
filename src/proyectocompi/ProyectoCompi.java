@@ -27,11 +27,9 @@ public class ProyectoCompi {
      */
     public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
         // TODO code application logic here
-        MyTree tree = new MyTree();
         Scanner rd = new Scanner(System.in);
         System.out.println("1. Generar");
         System.out.println("2. Ejecutar");
-        System.out.println("3.Probar arbol");
         int opcion = rd.nextInt();
         
         if (opcion == 1) {
@@ -41,42 +39,11 @@ public class ProyectoCompi {
             moveFile("sym.java");
         } else if (opcion == 2) {
             runParser();
-        }else if(opcion == 3){
-            tree = createTree();
-            tree.showTree(null, tree.root, new DefaultTreeModel(new DefaultMutableTreeNode()),new DefaultMutableTreeNode());
-            System.out.println("Salio");
-            tree.tree.setVisible(true);
         }
         
       
     }
 
-    public static MyTree createTree(){
-        MyTree tree = new MyTree(new TreeNode("a",null));
-        TreeNode b = new TreeNode("b",tree.root);
-        TreeNode c = new TreeNode("c",tree.root);
-        TreeNode d = new TreeNode("d",b);
-        TreeNode e = new TreeNode("e",b);
-        TreeNode f = new TreeNode("f",c);
-        TreeNode g = new TreeNode("g",c);
-        TreeNode h = new TreeNode("h",d);
-        TreeNode i = new TreeNode("i",d);
-        TreeNode j = new TreeNode("j",h);
-        TreeNode k = new TreeNode("k",h);
-        
-        tree.root.addSon(b);
-        tree.root.addSon(c);
-        b.addSon(d);
-        b.addSon(e);
-        c.addSon(f);
-        c.addSon(g);
-        d.addSon(h);
-        d.addSon(i);
-        h.addSon(j);
-        h.addSon(k);
-        
-        return tree;
-    }
     public static void generateLexer() {
         String[] params = new String[3];
         params[0] = "-d";
