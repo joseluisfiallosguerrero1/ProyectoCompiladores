@@ -16,6 +16,7 @@ parser code{:
 	ArrayList<TreeNode> cases = new ArrayList();
 	ArrayList<TreeNode> comparisons = new ArrayList();
 	ArrayList<TreeNode> ifs = new ArrayList();
+	ArrayList<TreeNode> assignments = new ArrayList();
 
 	public void report_error(String errorBody, Object info) {
 		next = (Symbol)info;
@@ -291,8 +292,8 @@ BODY ::=  BODY ERROR|
 		  BODY IF:I {:parser.body.add((TreeNode)I);:}  | 
 		  BODY SWITCH:S {:parser.body.add((TreeNode)S);:} | 
 		  BODY SingleAssignment:SA {:parser.body.add((TreeNode)SA);:}|
-		  BODY FOR|
-		  BODY WHILE|;
+		  BODY FOR:F {:parser.body.add((TreeNode)F);:}|
+		  BODY WHILE:W{:parser.body.add((TreeNode)W);:}|;
 
 ERROR ::= Call error:e{:
 				System.out.println("Call error EOL");
@@ -362,13 +363,14 @@ ParamsOrEmpty ::= Params|;
 RETURN ::= Return leftValue EOL;
 
 /*Gramatica para declaraciones y asignaciones*/
-Declaration ::= VariableType:VType Assignment:A EOL {:
+Declaration ::= VariableType:VType Assignment EOL {:
 					TreeNode declaration = new TreeNode("Declaration",null);
 					TreeNode type = new TreeNode("Type",null);
 					TreeNode typeNode = new TreeNode(VType.toString(),null);
 					parser.addNodeToTree(declaration,type);
-					parser.addNodeToTree(declaration,(TreeNode)A);
+					parser.addMultipleNodes(declaration,parser.assignments,false);
 					parser.addNodeToTree(type,typeNode);
+					parser.assignments = new ArrayList();
 					RESULT = declaration;
 				:};
 Assignment ::= VariableName:name AssignmentOperator:operator leftValue:leftVal {:
@@ -381,11 +383,32 @@ Assignment ::= VariableName:name AssignmentOperator:operator leftValue:leftVal {
 					parser.addNodeToTree(assignment,value);
 					parser.addNodeToTree(VName,nameNode);
 					parser.addNodeToTree(value,(TreeNode)leftVal);
-					RESULT = assignment;
+					parser.assignments.add(assignment);
 			   :}| 
-               Assignment Delimeter VariableName AssignmentOperator leftValue|
-			   VariableName| 
-			   Assignment Delimeter VariableName; 
+               Assignment Delimeter VariableName:name AssignmentOperator:operator leftValue:leftVal {:
+					TreeNode assignment = new TreeNode("Assignment",null);
+					TreeNode VName = new TreeNode("id",null);
+					TreeNode value = new TreeNode("value",null);
+					TreeNode nameNode = new TreeNode(name.toString(),null);
+					parser.addNodeToTree(assignment,VName);
+					parser.addNodeToTree(assignment,(TreeNode)operator);
+					parser.addNodeToTree(assignment,value);
+					parser.addNodeToTree(VName,nameNode);
+					parser.addNodeToTree(value,(TreeNode)leftVal);
+					parser.assignments.add(assignment);
+			   :}|
+			   VariableName:name{:
+			   		TreeNode node = new TreeNode("VariableName", null);
+			   		TreeNode nameNode = new TreeNode(name.toString(), null);
+			   		parser.addNodeToTree(node,nameNode);
+			   		parser.assignments.add(node);
+			   	:}| 
+			   Assignment Delimeter VariableName:name{:
+			   		TreeNode node = new TreeNode("VariableName", null);
+			   		TreeNode nameNode = new TreeNode(name.toString(), null);
+			   		parser.addNodeToTree(node,nameNode);
+			   		parser.assignments.add(node);
+			   	:}; 
 leftValue ::= AddSub:AS{:
 					RESULT = AS;
 			  :}|
@@ -609,13 +632,52 @@ RelationalOperator ::=Equal {:RESULT = new TreeNode("==",null);:}|
                       LessEqual{:RESULT = new TreeNode("<=",null);:};
 
 /*Gramatica para for*/
-FOR ::= For paramsFor WhileForBody;
-paramsFor ::= leftParenthesis  declarationFor Delimeter rangeFor EOL AddSub rightParenthesis;
-declarationFor ::= Type VariableName; 
-rangeFor ::= AddSub ThreePoints AddSub ;
+FOR ::= For paramsFor:cond WhileForBody:body{:
+			TreeNode For = new TreeNode("For", null);
+			parser.addNodeToTree(For,(TreeNode)cond);
+			parser.addNodeToTree(For,(TreeNode)body);
+			RESULT = For;
+	    :};
+paramsFor ::= leftParenthesis  declarationFor:V Delimeter rangeFor:R EOL AddSub:A rightParenthesis{:
+					TreeNode node = new TreeNode("Condition", null);
+					TreeNode step = new TreeNode("stepValue", null);
+					parser.addNodeToTree(node,(TreeNode)V);
+					parser.addNodeToTree(node,(TreeNode)R);
+					parser.addNodeToTree(node,step);
+					parser.addNodeToTree(step,(TreeNode)A);
+					RESULT = node;
+	          :};
+declarationFor ::= Type:type VariableName:name {:
+						TreeNode var = new TreeNode("Variable", null);
+						TreeNode node =  new TreeNode("Type", null);
+						TreeNode node2 =  new TreeNode("Name", null);
+						TreeNode typeNode = new TreeNode(type.toString(), null);
+						TreeNode nameNode = new TreeNode(name.toString(), null);
+						parser.addNodeToTree(var,node);
+						parser.addNodeToTree(var,node2);
+						parser.addNodeToTree(node,typeNode);
+						parser.addNodeToTree(node2,nameNode);
+						RESULT = var;
+
+				   :}; 
+rangeFor ::= AddSub:a1 ThreePoints AddSub:a2 {:
+				 TreeNode range = new TreeNode("Range", null);
+				 TreeNode begin = new TreeNode("Initial Value", null);
+				 TreeNode end = new TreeNode("Last Value", null);
+				 parser.addNodeToTree(range,begin);
+				 parser.addNodeToTree(range,end);
+				 parser.addNodeToTree(begin,(TreeNode)a1);
+				 parser.addNodeToTree(end,(TreeNode)a2);
+				 RESULT = range;
+	         :};
 
 /*Gramatica para while*/
-WHILE ::= While ComparisonInParenthesis WhileForBody;
+WHILE ::= While ComparisonInParenthesis:CP WhileForBody:body{:
+				TreeNode whileNode = new TreeNode("While", null);
+				parser.addNodeToTree(whileNode,(TreeNode)CP);
+				parser.addNodeToTree(whileNode,(TreeNode)body);
+				RESULT = whileNode;
+		  :};
 WhileForBody ::=  LeftKey BODY RightKey{:
 						TreeNode body = new TreeNode("Body", null);
 						parser.addMultipleNodes(body,parser.body,false);

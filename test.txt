@@ -1,24 +1,12 @@
 main(){
-	if(A>B OR A>B AND W>B){
-		int a := true;
-		int a := true;
-	}elseif(C>D AND A>B){
-		int b := false;
-		int a := true;
-	}else{
-		int a := true;
-		int c := false;
-	}
+	
+	for(int i, 1 ... 3;2){
+		int a,b,c,f;
+	}	
+
 	return true;
 }
 
-function suma(int a, int b):int{
-	return true;
-}
-
-function suma2(int a, int b):int{
-	return true;
-}
 
 
 
