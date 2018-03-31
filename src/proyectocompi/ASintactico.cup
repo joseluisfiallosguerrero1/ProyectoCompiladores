@@ -8,6 +8,7 @@ parser code{:
 	MyTree tree = new MyTree();
 	Symbol next;
 	TreeNode node = new TreeNode();
+	int level = 0;
 	ArrayList<String> functionNames = new ArrayList();
 	ArrayList<TreeNode> operations = new ArrayList();
 	ArrayList<TreeNode> body = new ArrayList();
@@ -154,6 +155,14 @@ parser code{:
 			}
 		}
 	}
+
+	public boolean verifyBody(int size){
+		if(size>body.size()){
+			return false;
+		}
+		return true;
+	}
+
 	public void addNodeToTree(TreeNode parent, TreeNode node){
 		node.setParent(parent);
 		parent.addSon(node);
@@ -276,9 +285,9 @@ PROGRAM ::= MAIN:m FUNCTION{:
 			:};
 
 /*Gramatica para main*/
-MAIN ::= Main leftParenthesis rightParenthesis FunctionBody{:
+MAIN ::= Main leftParenthesis rightParenthesis FunctionBody:body{:
 				TreeNode node = new TreeNode("Main",null);
-				parser.addMultipleNodes(node,parser.body,false);
+				parser.addNodeToTree(node,(TreeNode)body);
 				RESULT = node;
 		 :}|
 		 error:e{:
@@ -287,13 +296,76 @@ MAIN ::= Main leftParenthesis rightParenthesis FunctionBody{:
 
 /*Gramatica para el body del programa*/
 BODY ::=  BODY ERROR|
-		  BODY Declaration:D {:parser.body.add((TreeNode)D);:}| 
-		  BODY CALL:C{:parser.body.add((TreeNode)C);:}|  
-		  BODY IF:I {:parser.body.add((TreeNode)I);:}  | 
-		  BODY SWITCH:S {:parser.body.add((TreeNode)S);:} | 
-		  BODY SingleAssignment:SA {:parser.body.add((TreeNode)SA);:}|
-		  BODY FOR:F {:parser.body.add((TreeNode)F);:}|
-		  BODY WHILE:W{:parser.body.add((TreeNode)W);:}|;
+		  BODY:B Declaration:D {:
+		  		ArrayList<TreeNode> nodes = new ArrayList();
+		  		if(B == null){
+		  			nodes = new ArrayList();
+		  		}else{
+		  			nodes = ((ArrayList<TreeNode>)B);
+		  		}
+		  		nodes.add((TreeNode)D);
+		  		RESULT = nodes;
+		  :}| 
+		  BODY:B CALL:C{:
+		  		ArrayList<TreeNode> nodes = new ArrayList();
+		  		if(B == null){
+		  			nodes = new ArrayList();
+		  		}else{
+		  			nodes = ((ArrayList<TreeNode>)B);
+		  		}
+		  		nodes.add((TreeNode)C);
+		  		RESULT = nodes;
+		  :}|  
+		  BODY:B IF:I {:
+		  		ArrayList<TreeNode> nodes = new ArrayList();
+		  		if(B == null){
+		  			nodes = new ArrayList();
+		  		}else{
+		  			nodes = ((ArrayList<TreeNode>)B);
+		  		}
+		  		nodes.add((TreeNode)I);
+		  		RESULT = nodes;
+		  :}  | 
+		  BODY:B SWITCH:S {:
+		  		ArrayList<TreeNode> nodes = new ArrayList();
+		  		if(B == null){
+		  			nodes = new ArrayList();
+		  		}else{
+		  			nodes = ((ArrayList<TreeNode>)B);
+		  		}
+		  		nodes.add((TreeNode)S);
+		  		RESULT = nodes;
+		  :} | 
+		  BODY:B SingleAssignment:SA {:
+		  		ArrayList<TreeNode> nodes = new ArrayList();
+		  		if(B == null){
+		  			nodes = new ArrayList();
+		  		}else{
+		  			nodes = ((ArrayList<TreeNode>)B);
+		  		}
+		  		nodes.add((TreeNode)SA);
+		  		RESULT = nodes;
+		  :}|
+		  BODY:B FOR:F {:
+		  		ArrayList<TreeNode> nodes = new ArrayList();
+		  		if(B == null){
+		  			nodes = new ArrayList();
+		  		}else{
+		  			nodes = ((ArrayList<TreeNode>)B);
+		  		}
+		  		nodes.add((TreeNode)F);
+		  		RESULT = nodes;
+		  :}|
+		  BODY:B WHILE:W{:
+		  		ArrayList<TreeNode> nodes = new ArrayList();
+		  		if(B == null){
+		  			nodes = new ArrayList();
+		  		}else{
+		  			nodes = ((ArrayList<TreeNode>)B);
+		  		}
+		  		nodes.add((TreeNode)W);
+		  		RESULT = nodes;
+		  :}|;
 
 ERROR ::= Call error:e{:
 				System.out.println("Call error EOL");
@@ -334,7 +406,7 @@ CallParamsOrEmpty ::= CallParams|;
 
 /*Gramatica para funciones*/
 FUNCTION ::= Function VariableName:functionName FunctionHeader  FunctionBody FUNCTION:F{:
-					parser.functionNames.add(functionName.toString());
+				
 			 :}|
 			 error:e{:
 			 	System.out.println("Function");
@@ -349,7 +421,12 @@ FunctionHeader ::= leftParenthesis ParamsOrEmpty rightParenthesis TwoPoints Vari
 				   		System.out.println("Type");
 			 			parser.functionError(eleft+1,eright+1,"Type");
 				   	:};
-FunctionBody ::= LeftKey BODY:body RETURN RightKey|
+FunctionBody ::= LeftKey BODY:body RETURN RightKey{:
+						TreeNode bodyNode = new TreeNode("Body",null);
+						parser.body = (ArrayList<TreeNode>)body;
+						parser.addMultipleNodes(bodyNode,parser.body,false);
+						RESULT = bodyNode;						
+				:}|
 				 LeftKey BODY error:e{:
 				 		System.out.println("return");
 				 		parser.returnError(eleft+1,eright+1);
@@ -480,6 +557,7 @@ SWITCH ::= Switch  ComparisonSwitch:variable LeftKey  CASE RightKey{:
 				parser.addMultipleNodes(node,parser.cases,false);
 				RESULT = node;
 				parser.cases = new ArrayList();
+				System.out.println("Switch");
 			:}|
 			Switch error:e{:
 				System.out.println("Switch");
@@ -495,12 +573,14 @@ CaseHeader ::=	Case CaseValues:value TwoPoints{:
 					TreeNode node = new TreeNode("Value", null);
 					parser.addNodeToTree(node,(TreeNode)value);
 					RESULT = node;
+					System.out.println("CaseHeader");
 				:};
 CaseEnding ::= BODY Endcase EOL{:
 					TreeNode body = new TreeNode("Body", null);
 					parser.addMultipleNodes(body,parser.body,false);
 					RESULT = body;
 					parser.body = new ArrayList();
+					System.out.println("CaseEnding");
 				:}|
 				BODY error:e{:
 					System.out.println("Case ending");
@@ -511,6 +591,7 @@ CASE ::= CASE  CaseHeader:header CaseEnding:ending{:
 				parser.addNodeToTree(node,(TreeNode)header);
 				parser.addNodeToTree(node,(TreeNode)ending);
 				parser.cases.add(node);
+				System.out.println("Case");
 		 :}|
 				error:e{:
 					System.out.println("CaseHeader");
@@ -528,17 +609,20 @@ IF ::= If ComparisonInParenthesis:CP WhileForBody:body ELSEIF{:
 			parser.addMultipleNodes(ifNode,parser.ifs,true);
 			parser.ifs = new ArrayList();
 			RESULT =ifNode;
+			System.out.println("If");
 	   :};
 ELSEIF ::= Elseif ComparisonInParenthesis:CP WhileForBody:body ELSEIF{:
 				TreeNode elseif = new TreeNode("ElseIf", null);
 				parser.addNodeToTree(elseif,(TreeNode)CP);
 				parser.addNodeToTree(elseif,(TreeNode)body);
            		parser.ifs.add(elseif);
+           		System.out.println("If2");
 	       :}|
            Else WhileForBody:body{:
            		TreeNode elseNode = new TreeNode("Else",null);
            		parser.addNodeToTree(elseNode,(TreeNode)body);
            		parser.ifs.add(elseNode);
+           		System.out.println("If3");
            :}|;
 
 /*Gramatica para operaciones matematicas*/
@@ -637,6 +721,7 @@ FOR ::= For paramsFor:cond WhileForBody:body{:
 			parser.addNodeToTree(For,(TreeNode)cond);
 			parser.addNodeToTree(For,(TreeNode)body);
 			RESULT = For;
+			System.out.println("For");
 	    :};
 paramsFor ::= leftParenthesis  declarationFor:V Delimeter rangeFor:R EOL AddSub:A rightParenthesis{:
 					TreeNode node = new TreeNode("Condition", null);
@@ -677,12 +762,13 @@ WHILE ::= While ComparisonInParenthesis:CP WhileForBody:body{:
 				parser.addNodeToTree(whileNode,(TreeNode)CP);
 				parser.addNodeToTree(whileNode,(TreeNode)body);
 				RESULT = whileNode;
+				System.out.println("While");
 		  :};
-WhileForBody ::=  LeftKey BODY RightKey{:
-						TreeNode body = new TreeNode("Body", null);
-						parser.addMultipleNodes(body,parser.body,false);
-						parser.body = new ArrayList();
-						RESULT = body;
+WhileForBody ::=  LeftKey BODY:body RightKey{:
+						TreeNode bodyNode = new TreeNode("Body",null);
+						parser.body = (ArrayList<TreeNode>)body;
+						parser.addMultipleNodes(bodyNode,parser.body,false);
+						RESULT = bodyNode;
 				  :}|
 				  LeftKey BODY error:e{:
 				  		System.out.println("key2");
