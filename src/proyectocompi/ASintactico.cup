@@ -9,11 +9,12 @@ parser code{:
 	Symbol next;
 	TreeNode node = new TreeNode();
 	int level = 0;
-	ArrayList<String> functionNames = new ArrayList();
+	ArrayList<TreeNode> functions = new ArrayList();
 	ArrayList<TreeNode> operations = new ArrayList();
 	ArrayList<TreeNode> body = new ArrayList();
 	ArrayList<TreeNode> arrayElements = new ArrayList();
 	ArrayList<TreeNode> params = new ArrayList();
+	ArrayList<TreeNode> params2 = new ArrayList();
 	ArrayList<TreeNode> cases = new ArrayList();
 	ArrayList<TreeNode> comparisons = new ArrayList();
 	ArrayList<TreeNode> ifs = new ArrayList();
@@ -273,12 +274,10 @@ non terminal rangeFor;
 PROGRAM ::= MAIN:m FUNCTION{:
 					DefaultTreeModel model = new DefaultTreeModel(new DefaultMutableTreeNode());
 					parser.tree = new MyTree(new TreeNode("Program", null));
-					parser.node = (TreeNode)m;
-					parser.addNodeToTree(parser.tree.root, parser.node);
-
-					for(int i = 0; i < parser.functionNames.size(); i++){
-						parser.addNodeToTree(parser.tree.root, new TreeNode(parser.functionNames.get(i),parser.tree.root));
-					}
+					parser.addNodeToTree(parser.tree.root, (TreeNode)m);
+					TreeNode node = new TreeNode("Functions", null);
+					parser.addMultipleNodes(node,parser.functions,false);
+					parser.addNodeToTree(parser.tree.root,node);
 
 					parser.tree.showTree(null,parser.tree.root,model,(DefaultMutableTreeNode)model.getRoot());
 					parser.tree.tree.setVisible(true);
@@ -405,14 +404,30 @@ CallParams ::= leftValue:LV {:parser.params.add((TreeNode)LV);:} |
 CallParamsOrEmpty ::= CallParams|;
 
 /*Gramatica para funciones*/
-FUNCTION ::= Function VariableName:functionName FunctionHeader  FunctionBody FUNCTION:F{:
-				
+FUNCTION ::= Function VariableName:functionName FunctionHeader:FH  FunctionBody:body FUNCTION{:
+					TreeNode node = new TreeNode("function", null);
+					TreeNode name = new TreeNode("name", null);
+					TreeNode params2 = new TreeNode("Parameters", null);
+					TreeNode type = new TreeNode("ReturnType", null);
+					TreeNode nameNode = new TreeNode(functionName.toString(), null);
+					parser.addNodeToTree(node,name);
+					parser.addNodeToTree(node,type);
+					parser.addNodeToTree(node,params2);
+					parser.addNodeToTree(node,(TreeNode)body);
+					parser.addNodeToTree(name,nameNode);
+					System.out.println("Params: " + parser.params2);
+					parser.addMultipleNodes(params2,parser.params2,false);
+					parser.addNodeToTree(type,(TreeNode)FH);
+					parser.functions.add(node);
+					parser.params2 = new ArrayList();
 			 :}|
 			 error:e{:
 			 	System.out.println("Function");
 			 	parser.functionError(eleft+1,eright+1,"Function");
 			 :} FunctionBody FUNCTION|;
-FunctionHeader ::= leftParenthesis ParamsOrEmpty rightParenthesis TwoPoints VariableType|
+FunctionHeader ::= leftParenthesis ParamsOrEmpty rightParenthesis TwoPoints VariableType:type{:
+						RESULT = type;
+				   :}|
 				   error:e{:
 				   		System.out.println("BeforeType");
 			 			parser.functionError(eleft+1,eright+1,"BeforeType");
@@ -434,8 +449,30 @@ FunctionBody ::= LeftKey BODY:body RETURN RightKey{:
 				 error:e{:
 				 	System.out.println("Fixing");
 				 :} BODY RETURN RightKey;
-Params ::= VariableType VariableName| 
-		   Params Delimeter VariableType VariableName;
+Params ::= VariableType:type VariableName:name {:
+				TreeNode node = new TreeNode("Parameter", null);
+				TreeNode typeNode = new TreeNode("Type", null);
+				TreeNode nameNode = new TreeNode("id", null);
+				TreeNode node1 = new TreeNode(type.toString(), null);
+				TreeNode node2 = new TreeNode(name.toString(), null);
+				parser.addNodeToTree(node,typeNode);
+				parser.addNodeToTree(node,nameNode);
+				parser.addNodeToTree(typeNode,node1);
+				parser.addNodeToTree(nameNode,node2);
+				parser.params2.add(node);
+	       :}| 
+		   Params Delimeter VariableType:type VariableName:name{:
+		   		TreeNode node = new TreeNode("Parameter", null);
+				TreeNode typeNode = new TreeNode("Type", null);
+				TreeNode nameNode = new TreeNode("id", null);
+				TreeNode node1 = new TreeNode(type.toString(), null);
+				TreeNode node2 = new TreeNode(name.toString(), null);
+				parser.addNodeToTree(node,typeNode);
+				parser.addNodeToTree(node,nameNode);
+				parser.addNodeToTree(typeNode,node1);
+				parser.addNodeToTree(nameNode,node2);
+				parser.params2.add(node);
+		   :};
 ParamsOrEmpty ::= Params|;
 RETURN ::= Return leftValue EOL;
 

@@ -16,6 +16,22 @@ main(){
 	return true;
 }
 
+function suma(int a, int b):int{
+	if(a>b){
+		int a:=2;
+	}elseif(a<b){
+		int a:=2;
+	}else{
+		int a:=2;
+		call suma(a,a);
+	}
+
+	while(d>v){
+		int a:=2;
+	}
+
+	return true;	
+}
 
 
 
