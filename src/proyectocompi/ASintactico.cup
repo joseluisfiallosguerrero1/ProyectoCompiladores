@@ -415,7 +415,6 @@ FUNCTION ::= Function VariableName:functionName FunctionHeader:FH  FunctionBody:
 					parser.addNodeToTree(node,params2);
 					parser.addNodeToTree(node,(TreeNode)body);
 					parser.addNodeToTree(name,nameNode);
-					System.out.println("Params: " + parser.params2);
 					parser.addMultipleNodes(params2,parser.params2,false);
 					parser.addNodeToTree(type,(TreeNode)FH);
 					parser.functions.add(node);
@@ -436,10 +435,11 @@ FunctionHeader ::= leftParenthesis ParamsOrEmpty rightParenthesis TwoPoints Vari
 				   		System.out.println("Type");
 			 			parser.functionError(eleft+1,eright+1,"Type");
 				   	:};
-FunctionBody ::= LeftKey BODY:body RETURN RightKey{:
+FunctionBody ::= LeftKey BODY:body RETURN:R RightKey{:
 						TreeNode bodyNode = new TreeNode("Body",null);
 						parser.body = (ArrayList<TreeNode>)body;
 						parser.addMultipleNodes(bodyNode,parser.body,false);
+						parser.addNodeToTree(bodyNode,(TreeNode)R);
 						RESULT = bodyNode;						
 				:}|
 				 LeftKey BODY error:e{:
@@ -474,7 +474,11 @@ Params ::= VariableType:type VariableName:name {:
 				parser.params2.add(node);
 		   :};
 ParamsOrEmpty ::= Params|;
-RETURN ::= Return leftValue EOL;
+RETURN ::= Return leftValue:LV EOL{:
+				TreeNode node = new TreeNode("Return", null);
+				parser.addNodeToTree(node,(TreeNode)LV);
+				RESULT = node;
+	       :};
 
 /*Gramatica para declaraciones y asignaciones*/
 Declaration ::= VariableType:VType Assignment EOL {:
