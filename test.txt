@@ -1,18 +1,10 @@
 main(){
-	
-	if(a>b){
-		int a:=2;
-	}elseif(a<b){
-		int a:=2;
-	}else{
-		int a:=2;
-		call suma(a,a);
-	}
-
-	while(d>v){
-		int a:=2;
-	}
-
+	%$Hola%$
+	int  a:= 'Hola';
+	int  a:= 'Hola';
+	int a:= 2;
+	write (a);
+	read (a);
 	return true;
 }
 

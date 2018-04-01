@@ -30,8 +30,8 @@ And = "AND"
 Or = "OR"
 BooleanValue = "true" | "false"
 Call = "call"
-beginCom = "/%"
-endCom = "%/"
+beginCom = "%"
+endCom = "$"
 Write = "write"
 Read = "read"
 Function = "function"
@@ -76,10 +76,11 @@ VariableName = [:letter:]([:letter:]|[:digit:])*
 	{Or}			{return token(sym.Or, new String(yytext()));}
     {BooleanValue}  {return token(sym.BooleanValue, new String(yytext()));}
 	{Call}	{return token(sym.Call, new String(yytext()));}
-	{Write}	{System.out.println("Write: " + yytext());}
-	{Read}	{System.out.println("Read: " + yytext());}
-	{beginCom}	{System.out.println("Inicio de Comentario: " + yytext());
-				yybegin(COMMENT);}
+	{Write}	{return token(sym.Write,new String(yytext()));}
+	{Read}	{return token(sym.Read, new String(yytext()));}
+	{beginCom}	{yybegin(COMMENT);}
+	{endCom}    {System.out.println("Salgo");
+				return token(sym.endComment, new String("%$"));}
 	{Function}	{return token(sym.Function, new String(yytext()));}
 	{Endcase}	{return token(sym.Endcase, new String(yytext()));}
 	{Default}	{return token(sym.Default, new String(yytext()));}
@@ -148,15 +149,14 @@ VariableName = [:letter:]([:letter:]|[:digit:])*
 }
 
 <COMMENT>{
-	{endCom}	{System.out.println("Comentario: " + comment);
-				System.out.println("Fin de comentario: " + yytext());
-				comment = "";
-				yybegin(YYINITIAL);}
-	.			{comment+=yytext();}
+	{endCom}    {System.out.println("Entro");
+				return token(sym.beginComment, new String("%$"));}
+	{beginCom}  {yybegin(YYINITIAL);}
+	.			{return token(sym.Comment, new String(yytext()));}
 }
 <STRING>{
 	{Apostrophe}	{System.out.println("Apostrophe: " + yytext());
-			yybegin(YYINITIAL);
+					yybegin(YYINITIAL);
                         return token(sym.STRING,string);}
 	.				{string+=yytext();}				
 }
