@@ -5,6 +5,20 @@
  */
 package proyectocompi;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+
 /**
  *
  * @author Usuario
@@ -16,6 +30,7 @@ public class Tree extends javax.swing.JFrame {
      */
     public Tree() {
         initComponents();
+        this.jTree1.setModel(new DefaultTreeModel(new DefaultMutableTreeNode("PROGRAM")));
     }
 
     /**
@@ -29,30 +44,188 @@ public class Tree extends javax.swing.JFrame {
 
         jScrollPane1 = new javax.swing.JScrollPane();
         jTree1 = new javax.swing.JTree();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        jTextArea1 = new javax.swing.JTextArea();
+        jButton1 = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         jScrollPane1.setViewportView(jTree1);
+
+        jTextArea1.setColumns(20);
+        jTextArea1.setRows(5);
+        jScrollPane2.setViewportView(jTextArea1);
+
+        jButton1.setText("Compilar");
+        jButton1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButton1MouseClicked(evt);
+            }
+        });
+
+        jButton2.setText("Generar Lexer y Parser");
+        jButton2.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButton2MouseClicked(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(67, Short.MAX_VALUE)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 553, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(71, 71, 71))
+                .addGap(34, 34, 34)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jButton2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jButton1))
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 523, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 638, Short.MAX_VALUE)
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 468, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(18, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(39, 39, 39)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jButton1)
+                            .addComponent(jButton2))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jScrollPane2))
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 636, Short.MAX_VALUE)))
+                .addContainerGap())
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void jButton1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton1MouseClicked
+        // TODO add your handling code here:
+        this.jTextArea1.setText("");
+        JFileChooser chooser = new JFileChooser();
+        chooser.setCurrentDirectory(new File("C:/Users/Usuario/Documents/Periodo I 2018/Compiladores I/ProyectoCompiladores"));
+        int value = chooser.showOpenDialog(jTree1);
+
+        if (value == JFileChooser.APPROVE_OPTION) {
+            try {
+                File file = chooser.getSelectedFile();
+                FileReader fr = new FileReader(file);
+                BufferedReader br = new BufferedReader(fr);
+                String line = "";
+                while(line != null){
+                    line = br.readLine();
+                    this.jTextArea1.append(line);
+                    this.jTextArea1.append("\n");
+                }
+                this.runParser(file.getName());
+                JOptionPane.showMessageDialog(this, "Parseado por completo");
+            } catch (FileNotFoundException ex) {
+                JOptionPane.showMessageDialog(this, "ERROR");
+            } catch (IOException ex) {
+                Logger.getLogger(Tree.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }//GEN-LAST:event_jButton1MouseClicked
+
+    private void jButton2MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton2MouseClicked
+        // TODO add your handling code here:
+        generateLexer();
+        generateParser();
+        moveFile("AnalizadorSintactico.java");
+        moveFile("sym.java");
+        JOptionPane.showMessageDialog(this, "Se genero correctamente");
+    }//GEN-LAST:event_jButton2MouseClicked
+
+    public void generateLexer() {
+        String[] params = new String[3];
+        params[0] = "-d";
+        params[1] = "src/proyectocompi";
+        params[2] = "src/proyectocompi/lexer.flex";
+
+        try {
+            jflex.Main.generate(params);
+            System.out.println("Se genero lexer");
+        } catch (Exception e) {
+        }
+    }
+
+    public void generateParser() {
+        String[] params2 = new String[3];
+        params2[0] = "-parser";
+        params2[1] = "AnalizadorSintactico";
+        params2[2] = "src/proyectocompi/Asintactico.cup";
+
+        try {
+            java_cup.Main.main(params2);
+            System.out.println("Se genero el Parser");
+        } catch (Exception e) {
+        }
+    }
+
+    public boolean moveFile(String archNombre) {
+        boolean efectuado = false;
+        File arch = new File(archNombre);
+        if (arch.exists()) {
+            System.out.println("\n*** Moviendo " + arch + " \n***");
+            Path currentRelativePath = Paths.get("");
+            String nuevoDir = currentRelativePath.toAbsolutePath().toString()
+                    + File.separator + "src" + File.separator
+                    + "proyectocompi" + File.separator + arch.getName();
+            File archViejo = new File(nuevoDir);
+            archViejo.delete();
+            if (arch.renameTo(new File(nuevoDir))) {
+                System.out.println("\n*** Generado " + archNombre + "***\n");
+                efectuado = true;
+            } else {
+                System.out.println("\n*** No movido " + archNombre + " ***\n");
+            }
+        } else {
+            System.out.println("\n*** Codigo no existente ***\n");
+        }
+        return efectuado;
+    }
+
+    public void runParser(String file) throws FileNotFoundException {
+        DefaultTreeModel model = new DefaultTreeModel(new DefaultMutableTreeNode());
+        Lexer lexer = new Lexer(new FileReader(file));
+        AnalizadorSintactico parser = new AnalizadorSintactico(lexer);
+
+        try {
+            MyTree result = (MyTree) parser.parse().value;
+            this.showTree(null, result.root, model, (DefaultMutableTreeNode) model.getRoot());
+            System.out.println("Parseado correctamente");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void showTree(TreeNode parent, TreeNode node, DefaultTreeModel model, DefaultMutableTreeNode treeNode) {
+        if (parent == null) {
+            model = new DefaultTreeModel(new DefaultMutableTreeNode(node.getValue()));
+            if (node.hijos.size() > 0) {
+                showTree(node, node.getLefterSon(), model, (DefaultMutableTreeNode) model.getRoot());
+            }
+        } else {
+            DefaultMutableTreeNode hijo = new DefaultMutableTreeNode(node.getValue());
+            treeNode.add(hijo);
+            if (node.hasRightBrother()) {
+                showTree(parent, node.getRightBrother(), model, treeNode);
+            }
+
+            if (node.hijos.size() > 0) {
+                showTree(node, node.getLefterSon(), model, hijo);
+            }
+        }
+        this.jTree1.setModel(model);
+    }
 
     /**
      * @param args the command line arguments
@@ -90,7 +263,11 @@ public class Tree extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JTextArea jTextArea1;
     public javax.swing.JTree jTree1;
     // End of variables declaration//GEN-END:variables
 }

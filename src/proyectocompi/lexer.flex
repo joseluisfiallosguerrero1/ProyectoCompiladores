@@ -58,7 +58,7 @@ Case = "case"
 Return = "return"
 Type = ("int" | "boolean" | "char" | "string")
 ArrayType = ("int[]" | "char[]" | "string[]" | "boolean[]")
-ArithmeticOperator = "+"|"-"|"*"|"/"
+ArithmeticOperator = "+"|"-"|"*"|"/"|"mod"
 RelationalOperator = "=="|"<="|">="|"<"|">"|"!="
 AssignmentOperator = ":=" | "+=" | "-=" | "*=" | "/="
 Number = [:digit:]+
@@ -79,14 +79,12 @@ VariableName = [:letter:]([:letter:]|[:digit:])*
 	{Write}	{return token(sym.Write,new String(yytext()));}
 	{Read}	{return token(sym.Read, new String(yytext()));}
 	{beginCom}	{yybegin(COMMENT);}
-	{endCom}    {System.out.println("Salgo");
-				return token(sym.endComment, new String("%$"));}
+	{endCom}    {return token(sym.endComment, new String("%$"));}
 	{Function}	{return token(sym.Function, new String(yytext()));}
 	{Endcase}	{return token(sym.Endcase, new String(yytext()));}
 	{Default}	{return token(sym.Default, new String(yytext()));}
 	{While}	{return token(sym.While,new String(yytext()));}
-	{Apostrophe}	{System.out.println("Apostrophe "+ yytext());
-					string = "";
+	{Apostrophe}	{string = "";
 					yybegin(STRING);}
 	{If}	{return token(sym.If, new String(yytext()));}
 	{Elseif}	{return token(sym.Elseif, new String(yytext()));}
@@ -113,6 +111,8 @@ VariableName = [:letter:]([:letter:]|[:digit:])*
 								return token(sym.MultOP, new String(yytext()));
 							}else if("/".equals(yytext())){
 								return token(sym.DivOP, new String(yytext()));
+							}else if("mod".equals(yytext())){
+								return token(sym.ModOP, new String(yytext()));
 							}}
 	{RelationalOperator}		{	if("==".equals(yytext())){
 										return token(sym.Equal, new String(yytext()));
@@ -149,14 +149,12 @@ VariableName = [:letter:]([:letter:]|[:digit:])*
 }
 
 <COMMENT>{
-	{endCom}    {System.out.println("Entro");
-				return token(sym.beginComment, new String("%$"));}
+	{endCom}    {return token(sym.beginComment, new String("%$"));}
 	{beginCom}  {yybegin(YYINITIAL);}
 	.			{return token(sym.Comment, new String(yytext()));}
 }
 <STRING>{
-	{Apostrophe}	{System.out.println("Apostrophe: " + yytext());
-					yybegin(YYINITIAL);
+	{Apostrophe}	{yybegin(YYINITIAL);
                         return token(sym.STRING,string);}
 	.				{string+=yytext();}				
 }

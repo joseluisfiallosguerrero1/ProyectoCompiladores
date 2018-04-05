@@ -16,34 +16,13 @@ import javax.swing.tree.TreeModel;
 public class MyTree {
 
     TreeNode root;
-    Tree tree;
 
     public MyTree() {
-        this.tree = new Tree();
     }
 
     public MyTree(TreeNode root) {
         this.root = root;
-        this.tree = new Tree();
     }
 
-    public void showTree(TreeNode parent, TreeNode node, DefaultTreeModel model, DefaultMutableTreeNode treeNode) {
-        if (parent == null) {
-            model = new DefaultTreeModel(new DefaultMutableTreeNode(node.getValue()));
-            if (node.hijos.size() > 0) {
-                showTree(node, node.getLefterSon(), model, (DefaultMutableTreeNode) model.getRoot());
-            }
-        } else {
-            DefaultMutableTreeNode hijo = new DefaultMutableTreeNode(node.getValue());
-            treeNode.add(hijo);
-            if (node.hasRightBrother()) {
-                showTree(parent, node.getRightBrother(), model, treeNode);
-            }
-
-            if (node.hijos.size() > 0) {
-                showTree(node, node.getLefterSon(), model, hijo);
-            }
-        }
-        this.tree.jTree1.setModel(model);
-    }
+    
 }

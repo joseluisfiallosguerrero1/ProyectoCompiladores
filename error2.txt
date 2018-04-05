@@ -1,0 +1,46 @@
+(){
+	int opcion := 0;
+	write('Seleccione una opcion: ');
+	write('1. Factorial');
+	write('2. Primo');
+	read(opcion);
+
+	switch opcion){
+		case :
+			int num := 0, result := 1;
+			write('Ingrese un numero: ');
+			read(num);
+
+			while(num 1){
+				result *= num;
+				num -= 1;
+			}
+			write('El factorial de ', num, ' es ', result);
+		endcase
+		case 2:
+			int num := ;
+			boolean isPrime :=;
+			write('Ingrese un numero: ' ;
+			read num);
+			
+			if( > 3){
+				for(int i,2...num-1;1 {
+					if(num 1 == 0){
+						isPrime := false;
+					}
+				}
+			}
+
+			f(isPrime == true){
+				write('Es Primo');
+			}else{
+				write('No es primo');
+				
+		endcase;
+		case default:
+			write('Esta opcion no existe');
+		endcase;
+	}
+
+	return ;	
+}

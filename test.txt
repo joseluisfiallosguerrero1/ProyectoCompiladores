@@ -1,29 +1,23 @@
 main(){
-	%$Hola%$
-	int  a:= 'Hola';
-	int  a:= 'Hola';
-	int a:= 2;
-	write (a);
-	read (a);
-	return true;
+	int num := 0;
+	write('Ingrese un numero: ');
+	read(a);
+	call factorial(a);
+	call factorial(a,b,c);
+	call factorial(a,b);
+	call factorial(a);
+	return 1;
 }
 
-function suma(int a, int b):int{
-	if(a>b){
-		int a:=2;
-	}elseif(a<b){
-		int a:=2;
-	}else{
-		int a:=2;
-		call suma(a,a);
+function factorial(int number):int{
+	int n := 1;
+	for(int i, 1...number; 1){
+		n *= i;
 	}
-
-	while(d>v){
-		int a:=2;
-	}
-
-	return true;	
+	return n;
 }
+
+
 
 
 
