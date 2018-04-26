@@ -373,7 +373,7 @@ BODY ::=  BODY ERROR|
 		  			RESULT = nodes;
 		  		}
 		  :}| 
-		  BODY:B CALL:C{:
+		  BODY:B CALL:C EOL{:
 		  		if(!parser.errorFound){
 		  			ArrayList<TreeNode> nodes = new ArrayList();
 		  			if(B == null){
@@ -459,7 +459,7 @@ ERROR ::= Call error:e{:
 		  :} WhileForBody;
 
 /*Gramatica para llamados a funciones*/
-CALL ::= Call VariableName:name CallHeader EOL {:
+CALL ::= Call VariableName:name CallHeader{:
 				if(!parser.errorFound){
 		 			TreeNode node = new TreeNode("Call",null);
 		 			TreeNode node3 = new TreeNode("FunctionParams",null);
@@ -605,7 +605,9 @@ Assignment ::= VariableName:name AssignmentOperator:operator leftValue:leftVal {
 			   			parser.assignments.add(nameNode);
 			   		}
 			   	:}; 
-leftValue ::= AddSub:AS{:
+leftValue ::= CALL:C{:
+              	RESULT = C;
+              	:}|AddSub:AS{:
 					RESULT = AS;
 			  :}|
               BooleanValue:Boolean{:
@@ -620,9 +622,6 @@ leftValue ::= AddSub:AS{:
               			RESULT = value;
               		}
               :}|
-              CALL:C{:
-              	RESULT = C;
-              	:}|
               ArrayAssignment:AA {:
               	RESULT = AA;
               	:};

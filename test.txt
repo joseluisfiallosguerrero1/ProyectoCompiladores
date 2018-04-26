@@ -3,17 +3,8 @@ main(){
 	write('Ingrese un numero: ');
 	read(a);
 	call factorial(a);
-	call factorial(a,b,c);
-	call factorial(a,b);
-	call factorial(a);
-	return 1;
-}
-
-function factorial(int number):int{
-	int n := 1;
-	for(int i, 1...number; 1){
-		n *= i;
-	}
+	
+	int a := call factorial(a,b,c);
 	return n;
 }
 

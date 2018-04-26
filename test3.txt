@@ -5,7 +5,7 @@ main(){
 	write('2. Primo');
 	write('3. Cantidad de pares e impares');
 	read(opcion);
-
+	a:=2+3+a@;
 	switch(opcion){
 		case 1:
 			int num := 0, result := 1;
