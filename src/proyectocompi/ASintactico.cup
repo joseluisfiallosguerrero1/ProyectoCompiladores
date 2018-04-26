@@ -183,6 +183,24 @@ parser code{:
 		System.out.println("Syntax error in line: " + line + " Column: " + column + 
 					"; "  + message);
 	}
+
+	public TreeNode verifyAssignmentOperator(TreeNode param){
+			TreeNode node = new TreeNode();
+
+			if(param.value.toString().equals(":=")){
+				node = new TreeNode("Assignment",null);
+			}else if(param.value.toString().equals("+=")){
+				node = new TreeNode("SumAssignment",null);
+			}else if(param.value.toString().equals("-=")){
+				node = new TreeNode("SubAssignment",null);
+			}else if(param.value.toString().equals("*=")){
+				node = new TreeNode("MultAssignment",null);
+			}else if(param.value.toString().equals("/=")){
+				node = new TreeNode("DivAssignment",null);
+			}
+			return node;
+	}
+
 :};
 
 terminal Number;
@@ -575,10 +593,9 @@ Declaration ::= VariableType:VType Assignment EOL {:
 				:};
 Assignment ::= VariableName:name AssignmentOperator:operator leftValue:leftVal {:
 					if(!parser.errorFound){
-						TreeNode assignment = new TreeNode("Assignment",null);
+						TreeNode assignment = parser.verifyAssignmentOperator((TreeNode)operator);
 						TreeNode nameNode = new TreeNode(name.toString(),null);
 						parser.addNodeToTree(assignment,nameNode);
-						parser.addNodeToTree(assignment,(TreeNode)operator);
 						parser.addNodeToTree(assignment,(TreeNode)leftVal);
 						parser.assignments.add(assignment);
 					}

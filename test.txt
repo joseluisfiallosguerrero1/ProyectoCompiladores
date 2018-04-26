@@ -1,5 +1,9 @@
 main(){
 	int num := 0;
+	int num += 0;
+	int num -= 0;
+	int num *= 0;
+	int num /= 0;
 	write('Ingrese un numero: ');
 	read(a);
 	call factorial(a);
