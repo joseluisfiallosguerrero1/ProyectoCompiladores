@@ -201,6 +201,25 @@ parser code{:
 			return node;
 	}
 
+	public TreeNode verifyComparisonOperator(TreeNode param){
+			TreeNode node = new TreeNode();
+
+			if(param.value.toString().equals("==")){
+				node = new TreeNode("Equal",null);
+			}else if(param.value.toString().equals(">=")){
+				node = new TreeNode("GreaterEqual",null);
+			}else if(param.value.toString().equals("<=")){
+				node = new TreeNode("LessEqual",null);
+			}else if(param.value.toString().equals("!=")){
+				node = new TreeNode("Different",null);
+			}else if(param.value.toString().equals("<")){
+				node = new TreeNode("LessThan",null);
+			}else if(param.value.toString().equals(">")){
+				node = new TreeNode("GreaterThan",null);
+			}
+			return node;
+	}	
+
 :};
 
 terminal Number;
@@ -860,9 +879,8 @@ ComparisonInParenthesis ::= leftParenthesis Comparison rightParenthesis{:
 							:};
 Comparison ::= leftValue:LV RelationalOperator:operator leftValue:RV MultipleComparison{:
 						if(!parser.errorFound){
-							TreeNode comparison = new TreeNode("Comparison",null);
+							TreeNode comparison = parser.verifyComparisonOperator((TreeNode)operator);
 							parser.addNodeToTree(comparison,(TreeNode)LV);
-							parser.addNodeToTree(comparison,(TreeNode)operator);
 							parser.addNodeToTree(comparison,(TreeNode)RV);
 							parser.comparisons.add(comparison);
 						}
