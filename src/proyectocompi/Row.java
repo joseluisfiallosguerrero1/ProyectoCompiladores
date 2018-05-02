@@ -39,7 +39,7 @@ public class Row {
 
     @Override
     public String toString() {
-        return  "{id: " + id + ", type: " + type + "}";
+        return  "{id: " + id + ", type: " + type + "}" + "\n";
     }
     
     

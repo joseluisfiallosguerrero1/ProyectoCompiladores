@@ -49,6 +49,7 @@ public class Tree extends javax.swing.JFrame {
         jTextArea1 = new javax.swing.JTextArea();
         jButton1 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
+        ShowTables = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -72,6 +73,13 @@ public class Tree extends javax.swing.JFrame {
             }
         });
 
+        ShowTables.setText("Mostrar Tablas de Simbolos");
+        ShowTables.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                ShowTablesMouseClicked(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -82,7 +90,9 @@ public class Tree extends javax.swing.JFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jButton2)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jButton1))
+                        .addComponent(jButton1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(ShowTables))
                     .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 523, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 638, Short.MAX_VALUE)
@@ -96,7 +106,8 @@ public class Tree extends javax.swing.JFrame {
                         .addGap(39, 39, 39)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jButton1)
-                            .addComponent(jButton2))
+                            .addComponent(jButton2)
+                            .addComponent(ShowTables))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jScrollPane2))
                     .addGroup(layout.createSequentialGroup()
@@ -144,6 +155,12 @@ public class Tree extends javax.swing.JFrame {
         moveFile("sym.java");
         JOptionPane.showMessageDialog(this, "Se genero correctamente");
     }//GEN-LAST:event_jButton2MouseClicked
+
+    private void ShowTablesMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_ShowTablesMouseClicked
+        // TODO add your handling code here:
+        DefaultTreeModel model = new DefaultTreeModel(new DefaultMutableTreeNode());
+        this.showTree(null, this.symbolTables.root, model, (DefaultMutableTreeNode) model.getRoot());
+    }//GEN-LAST:event_ShowTablesMouseClicked
 
     public void generateLexer() {
         String[] params = new String[3];
@@ -208,10 +225,10 @@ public class Tree extends javax.swing.JFrame {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
+        System.out.println("");
+        System.out.println("***************ANALISIS SEMANTICO*********************");
         TreeNode node = this.getLeftestSon(result.root);
         this.evaluateTree(node.getParent(), node);
-        System.out.println(this.list);
     }
 
     public void evaluateTree(TreeNode parent, TreeNode node) {
@@ -234,7 +251,19 @@ public class Tree extends javax.swing.JFrame {
         } else if (node.value.toString().equals("Declaration")) {
             evaluateDeclaration(node);
         } else if (node.value.toString().equals("Assignment")) {
-            evaluateAssignment(node);
+            evaluateAssignment(node,false);
+        } else if (node.value.toString().equals("Main")) {
+            TreeNode ambit = new TreeNode("Main", this.symbolTables.root);
+            this.symbolTables.root.hijos.add(ambit);
+            TreeNode table = new TreeNode(this.list, ambit);
+            ambit.hijos.add(table);
+            this.list = new ArrayList();
+        } else if (node.value.toString().equals("function")) {
+            TreeNode ambit = new TreeNode(node.getLefterSon().value.toString(), this.symbolTables.root);
+            this.symbolTables.root.hijos.add(ambit);
+            TreeNode table = new TreeNode(this.list, ambit);
+            ambit.hijos.add(table);
+            this.list = new ArrayList();
         }
     }
 
@@ -247,19 +276,23 @@ public class Tree extends javax.swing.JFrame {
                     System.out.println("Variable " + node.hijos.get(i).value.toString()
                             + " ya ha sido declarada");
                 }
+            } else {
+                evaluateAssignment(node.hijos.get(i),true);
             }
         }
     }
 
-    public void evaluateAssignment(TreeNode node) {
+    public void evaluateAssignment(TreeNode node, boolean isDeclaration) {
         String id = node.getLefterSon().value.toString();
         String type = "";
-        
+
         if (node.getParent().value.toString().equals("Declaration")) {
-            if(this.type.equals(node.getHijos().get(1).value.toString())){
-                this.list.add(new Row(id,this.type));
-            }else{
-                System.out.println("Variable: " + id + " es de tipo " + this.type);
+            if (isDeclaration) {
+                if (this.type.equals(node.getHijos().get(1).value.toString())) {
+                    this.list.add(new Row(id, this.type));
+                } else {
+                    System.out.println("Variable: " + id + " es de tipo " + this.type);
+                }
             }
         } else {
             if (this.existInSymbolTable(id)) {
@@ -356,6 +389,7 @@ public class Tree extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton ShowTables;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JScrollPane jScrollPane1;
@@ -364,7 +398,7 @@ public class Tree extends javax.swing.JFrame {
     public javax.swing.JTree jTree1;
     // End of variables declaration//GEN-END:variables
     MyTree result = new MyTree();
-    MyTree symbolTables = new MyTree();
+    MyTree symbolTables = new MyTree(new TreeNode("Symbol Tables", null));
     String type = "";
     ArrayList<Row> list = new ArrayList();
 }
