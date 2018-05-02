@@ -215,20 +215,35 @@ public class Tree extends javax.swing.JFrame {
         DefaultTreeModel model = new DefaultTreeModel(new DefaultMutableTreeNode());
         Lexer lexer = new Lexer(new FileReader(file));
         AnalizadorSintactico parser = new AnalizadorSintactico(lexer);
+        ArrayList arr = new ArrayList();
         result = new MyTree();
         list = new ArrayList();
 
         try {
-            result = (MyTree) parser.parse().value;
+            arr = (ArrayList) parser.parse().value;
+            result = (MyTree) arr.get(0);
+            list = (ArrayList<Row>) arr.get(1);
             this.showTree(null, result.root, model, (DefaultMutableTreeNode) model.getRoot());
             System.out.println("Parseado correctamente");
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        this.addFunctionsToSymbolTable();
         System.out.println("");
         System.out.println("***************ANALISIS SEMANTICO*********************");
         TreeNode node = this.getLeftestSon(result.root);
         this.evaluateTree(node.getParent(), node);
+    }
+
+    public void addFunctionsToSymbolTable() {
+        if (list.size() > 0) {
+            TreeNode node = new TreeNode("Functions", this.symbolTables.root);
+            this.symbolTables.root.hijos.add(node);
+            TreeNode node2 = new TreeNode(this.list, node);
+            node.hijos.add(node2);
+
+        }
     }
 
     public void evaluateTree(TreeNode parent, TreeNode node) {
@@ -251,7 +266,7 @@ public class Tree extends javax.swing.JFrame {
         } else if (node.value.toString().equals("Declaration")) {
             evaluateDeclaration(node);
         } else if (node.value.toString().equals("Assignment")) {
-            evaluateAssignment(node,false);
+            evaluateAssignment(node, false);
         } else if (node.value.toString().equals("Main")) {
             TreeNode ambit = new TreeNode("Main", this.symbolTables.root);
             this.symbolTables.root.hijos.add(ambit);
@@ -277,7 +292,7 @@ public class Tree extends javax.swing.JFrame {
                             + " ya ha sido declarada");
                 }
             } else {
-                evaluateAssignment(node.hijos.get(i),true);
+                evaluateAssignment(node.hijos.get(i), true);
             }
         }
     }

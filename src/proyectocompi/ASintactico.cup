@@ -19,6 +19,9 @@ parser code{:
 	ArrayList<TreeNode> comparisons = new ArrayList();
 	ArrayList<TreeNode> ifs = new ArrayList();
 	ArrayList<TreeNode> assignments = new ArrayList();
+	ArrayList<Row> functionTable = new ArrayList();
+	String row = "";
+	ArrayList<String> functionNames = new ArrayList();
 
 	public void report_error(String errorBody, Object info) {
 		errorFound = true;
@@ -220,6 +223,14 @@ parser code{:
 			return node;
 	}	
 
+	public void addFunctionsToTable(){
+		int k = 0;
+		for(int i = functionNames.size()-1; i >= 0; i--){
+			functionTable.get(k).setId(functionNames.get(i));
+			k++;
+		}
+	}
+
 :};
 
 terminal Number;
@@ -328,16 +339,22 @@ non terminal READ;
 
 /*Gramatica del programa*/
 PROGRAM ::= MAIN:m FUNCTION{:
+						ArrayList list = new ArrayList();
 					if(!parser.errorFound){
 						parser.tree = new MyTree(new TreeNode("Program", null));
 						parser.addNodeToTree(parser.tree.root, (TreeNode)m);
 						TreeNode node = new TreeNode("Functions", null);
 						parser.addMultipleNodes(node,parser.functions,true);
 						parser.addNodeToTree(parser.tree.root,node);
-						RESULT = parser.tree;
+						list.add(parser.tree);
+						parser.addFunctionsToTable();
+						list.add(parser.functionTable);
+						RESULT = list;
 					}else{
 						parser.tree = new MyTree(parser.node);
-						RESULT = parser.tree;
+						list.add(parser.tree);
+						list.add(new ArrayList());
+						RESULT = list;
 					}
 			:};
 
@@ -528,6 +545,7 @@ FUNCTION ::= Function VariableName:functionName FunctionHeader:FH  FunctionBody:
 						parser.addNodeToTree(node,(TreeNode)body);
 						parser.addMultipleNodes(params2,((ArrayList<TreeNode>)((ArrayList)FH).get(1)),false);
 						parser.functions.add(node);
+						parser.functionNames.add(functionName.toString());
 						parser.params2 = new ArrayList();
 					}
 			 :}|
@@ -538,6 +556,9 @@ FunctionHeader ::= leftParenthesis ParamsOrEmpty:P rightParenthesis TwoPoints Va
 							ArrayList arr = new ArrayList();
 							arr.add(type);
 							arr.add(P);
+							parser.row+="->" + type.toString();
+							parser.functionTable.add(new Row("",parser.row));
+							parser.row = "";
 							RESULT = arr;
 				   :}|
 				   error:e{:
@@ -564,6 +585,7 @@ FunctionBody ::= LeftKey BODY:body RETURN:R RightKey{:
 Params ::= VariableType:type VariableName:name {:
 				if(!parser.errorFound){
 					TreeNode node = new TreeNode("Parameter", null);
+					parser.row+=type.toString();
 					TreeNode node1 = new TreeNode(type.toString(), null);
 					TreeNode node2 = new TreeNode(name.toString(), null);
 					parser.addNodeToTree(node,node1);
@@ -584,6 +606,7 @@ Params ::= VariableType:type VariableName:name {:
 					if(P != null){
 						arr = (ArrayList<TreeNode>)P;
 					}
+					parser.row += "," + type.toString();
 					arr.add(node);
 					RESULT = arr;
 				}

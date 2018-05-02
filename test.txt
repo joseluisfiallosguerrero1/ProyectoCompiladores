@@ -5,13 +5,12 @@ main(){
 	return 1;
 }
 
-function suma():int{
+function suma(boolean a, int b):int{
 	boolean num,num2,num3 := false;
-	int num;
 	return true;
 }
 
-function resta():boolean{
+function resta(int c, boolean d):boolean{
 	string word := 'Hola';
 	return false;
 }
