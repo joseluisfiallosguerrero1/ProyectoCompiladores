@@ -96,6 +96,15 @@ public class TreeNode {
         return new TreeNode();
     }
 
+    public boolean containValueInSon(String value){
+        for (int i = 0; i < this.hijos.size(); i++) {
+            if(this.hijos.get(i).value.toString().equals(value)){
+                return true;
+            }
+        }
+        return false;
+    }
+    
     @Override
     public String toString() {
         return (String) value;

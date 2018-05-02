@@ -23,6 +23,4 @@ public class MyTree {
     public MyTree(TreeNode root) {
         this.root = root;
     }
-
-    
 }

@@ -12,6 +12,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
@@ -120,7 +121,7 @@ public class Tree extends javax.swing.JFrame {
                 FileReader fr = new FileReader(file);
                 BufferedReader br = new BufferedReader(fr);
                 String line = "";
-                while(line != null){
+                while (line != null) {
                     line = br.readLine();
                     this.jTextArea1.append(line);
                     this.jTextArea1.append("\n");
@@ -197,14 +198,106 @@ public class Tree extends javax.swing.JFrame {
         DefaultTreeModel model = new DefaultTreeModel(new DefaultMutableTreeNode());
         Lexer lexer = new Lexer(new FileReader(file));
         AnalizadorSintactico parser = new AnalizadorSintactico(lexer);
+        result = new MyTree();
+        list = new ArrayList();
 
         try {
-            MyTree result = (MyTree) parser.parse().value;
+            result = (MyTree) parser.parse().value;
             this.showTree(null, result.root, model, (DefaultMutableTreeNode) model.getRoot());
             System.out.println("Parseado correctamente");
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        TreeNode node = this.getLeftestSon(result.root);
+        this.evaluateTree(node.getParent(), node);
+        System.out.println(this.list);
+    }
+
+    public void evaluateTree(TreeNode parent, TreeNode node) {
+        if (parent == null) {
+            System.out.println("Recorrido terminado");
+        } else {
+            evaluateNode(node);
+            if (node.hasRightBrother()) {
+                node = getLeftestSon(node.getRightBrother());
+                evaluateTree(node.getParent(), node);
+            } else {
+                evaluateTree(parent.getParent(), parent);
+            }
+        }
+    }
+
+    public void evaluateNode(TreeNode node) {
+        if (node.value.toString().equals("Type")) {
+            this.type = node.getLefterSon().value.toString();
+        } else if (node.value.toString().equals("Declaration")) {
+            evaluateDeclaration(node);
+        } else if (node.value.toString().equals("Assignment")) {
+            evaluateAssignment(node);
+        }
+    }
+
+    public void evaluateDeclaration(TreeNode node) {
+        for (int i = 1; i < node.hijos.size(); i++) {
+            if (!node.hijos.get(i).value.toString().equals("Assignment")) {
+                if (!this.existInSymbolTable(node.hijos.get(i).value.toString())) {
+                    this.list.add(new Row(node.hijos.get(i).value.toString(), this.type));
+                } else {
+                    System.out.println("Variable " + node.hijos.get(i).value.toString()
+                            + " ya ha sido declarada");
+                }
+            }
+        }
+    }
+
+    public void evaluateAssignment(TreeNode node) {
+        String id = node.getLefterSon().value.toString();
+        String type = "";
+        
+        if (node.getParent().value.toString().equals("Declaration")) {
+            if(this.type.equals(node.getHijos().get(1).value.toString())){
+                this.list.add(new Row(id,this.type));
+            }else{
+                System.out.println("Variable: " + id + " es de tipo " + this.type);
+            }
+        } else {
+            if (this.existInSymbolTable(id)) {
+                type = this.getTypeById(node.getLefterSon().value.toString());
+                if (node.hijos.get(1).value.toString().equals(type)) {
+                    //En caso de modificar valor
+                } else {
+                    System.out.println("Variable " + id + " es de tipo " + type);
+                }
+            } else {
+                System.out.println("Variable " + id + " no ha sido declarada");
+            }
+        }
+    }
+
+    public boolean existInSymbolTable(String value) {
+        for (int i = 0; i < this.list.size(); i++) {
+            if (this.list.get(i).getId().equals(value)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public String getTypeById(String id) {
+        for (int i = 0; i < list.size(); i++) {
+            if (list.get(i).getId().equals(id)) {
+                return list.get(i).getType();
+            }
+        }
+        return "null";
+    }
+
+    public TreeNode getLeftestSon(TreeNode node) {
+        while (node.isParent()) {
+            node = node.getLefterSon();
+        }
+        return node;
     }
 
     public void showTree(TreeNode parent, TreeNode node, DefaultTreeModel model, DefaultMutableTreeNode treeNode) {
@@ -270,4 +363,8 @@ public class Tree extends javax.swing.JFrame {
     private javax.swing.JTextArea jTextArea1;
     public javax.swing.JTree jTree1;
     // End of variables declaration//GEN-END:variables
+    MyTree result = new MyTree();
+    MyTree symbolTables = new MyTree();
+    String type = "";
+    ArrayList<Row> list = new ArrayList();
 }

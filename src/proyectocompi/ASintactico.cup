@@ -624,7 +624,6 @@ Assignment ::= VariableName:name AssignmentOperator:operator leftValue:leftVal {
 						TreeNode assignment = new TreeNode("Assignment",null);
 						TreeNode nameNode = new TreeNode(name.toString(),null);
 						parser.addNodeToTree(assignment,nameNode);
-						parser.addNodeToTree(assignment,(TreeNode)operator);
 						parser.addNodeToTree(assignment,(TreeNode)leftVal);
 						parser.assignments.add(assignment);
 					}
@@ -648,14 +647,18 @@ leftValue ::= CALL:C{:
 			  :}|
               BooleanValue:Boolean{:
               		if(!parser.errorFound){
+              			TreeNode node = new TreeNode("boolean", null);
               			TreeNode value = new TreeNode(Boolean.toString(),null);
-              			RESULT = value;
+              			parser.addNodeToTree(node, value);
+              			RESULT = node;
               		}
               :}|
               STRING:word{:
               		if(!parser.errorFound){
+              			TreeNode node = new TreeNode("string", null);
               			TreeNode value = new TreeNode(word.toString(),null);
-              			RESULT = value;
+              			parser.addNodeToTree(node,value);
+              			RESULT = node;
               		}
               :}|
               ArrayAssignment:AA {:
@@ -698,9 +701,7 @@ SingleAssignment ::= VariableName:name AssignmentOperator:operator leftValue:LV 
 					 		if(!parser.errorFound){
 					 			TreeNode node = new TreeNode("Assignment",null);
 					 			TreeNode nameNode = new TreeNode(name.toString(), null);
-					 			TreeNode operatorNode = new TreeNode(operator.toString(), null);
 					 			parser.addNodeToTree(node,nameNode);
-					 			parser.addNodeToTree(node,operatorNode);
 					 			parser.addNodeToTree(node,(TreeNode)LV);
 					 			RESULT = node;
 					 		}
@@ -708,10 +709,8 @@ SingleAssignment ::= VariableName:name AssignmentOperator:operator leftValue:LV 
 					 			if(!parser.errorFound){
 					 			TreeNode node = new TreeNode("ArrayAssignment",null);
 					 			TreeNode nameNode = new TreeNode(name.toString(), null);
-					 			TreeNode operatorNode = new TreeNode(operator.toString(), null);
 					 			parser.addNodeToTree(node,nameNode);
 					 			parser.addNodeToTree(node,(TreeNode)size);
-					 			parser.addNodeToTree(node,operatorNode);
 					 			parser.addNodeToTree(node,(TreeNode)LV);
 					 			RESULT = node;
 					 		}
@@ -803,7 +802,7 @@ ELSEIF ::= Elseif ComparisonInParenthesis:CP WhileForBody:body ELSEIF{:
 AddSub ::= MultDiv:MD MultipleAddSub:MAS {:
 		   		if(!parser.errorFound){
 		   			parser.operations.add((TreeNode)MD);
-						TreeNode AddSub = new TreeNode("Value1", null);
+						TreeNode AddSub = new TreeNode("int", null);
 						parser.addMultipleNodes(AddSub,parser.operations,true);
 						RESULT = AddSub;
 						parser.operations = new ArrayList();
@@ -820,7 +819,7 @@ MultipleAddSub ::= AddOP MultDiv:MD MultipleAddSub:MAS {:
 MultDiv ::= ArithmeticOperation:AOP MultipleMultDiv {:
 				if(!parser.errorFound){
 					parser.operations.add((TreeNode)AOP);
-					TreeNode multDiv = new TreeNode("Value2", null);
+					TreeNode multDiv = new TreeNode("int2", null);
 					parser.addMultipleNodes(multDiv,parser.operations,true);
 					RESULT = multDiv;
 					parser.operations = new ArrayList();
