@@ -216,6 +216,7 @@ public class Tree extends javax.swing.JFrame {
         Lexer lexer = new Lexer(new FileReader(file));
         AnalizadorSintactico parser = new AnalizadorSintactico(lexer);
         ArrayList arr = new ArrayList();
+        this.symbolTables = new MyTree(new TreeNode("Symbol Tables", null));
         result = new MyTree();
         list = new ArrayList();
 
@@ -230,6 +231,7 @@ public class Tree extends javax.swing.JFrame {
         }
 
         this.addFunctionsToSymbolTable();
+        this.list = new ArrayList();
         System.out.println("");
         System.out.println("***************ANALISIS SEMANTICO*********************");
         TreeNode node = this.getLeftestSon(result.root);
@@ -242,7 +244,6 @@ public class Tree extends javax.swing.JFrame {
             this.symbolTables.root.hijos.add(node);
             TreeNode node2 = new TreeNode(this.list, node);
             node.hijos.add(node2);
-
         }
     }
 
@@ -268,28 +269,35 @@ public class Tree extends javax.swing.JFrame {
         } else if (node.value.toString().equals("Assignment")) {
             evaluateAssignment(node, false);
         } else if (node.value.toString().equals("Main")) {
-            TreeNode ambit = new TreeNode("Main", this.symbolTables.root);
-            this.symbolTables.root.hijos.add(ambit);
-            TreeNode table = new TreeNode(this.list, ambit);
-            ambit.hijos.add(table);
+            this.addTableToTree("Main", list, this.symbolTables.root);
             this.list = new ArrayList();
         } else if (node.value.toString().equals("function")) {
-            TreeNode ambit = new TreeNode(node.getLefterSon().value.toString(), this.symbolTables.root);
-            this.symbolTables.root.hijos.add(ambit);
-            TreeNode table = new TreeNode(this.list, ambit);
-            ambit.hijos.add(table);
+            this.addTableToTree(node.getLefterSon().value.toString(), list, this.symbolTables.root);
             this.list = new ArrayList();
+        } else if (node.value.toString().equals("Call")) {
+            this.evaluateCall(node, "", false);
+        }else if(node.value.toString().equals("int")){
+        
+        }else if(node.value.toString().equals("int2")){
+        
         }
+    }
+
+    public void addTableToTree(String ambitName, ArrayList<Row> Table, TreeNode root) {
+        TreeNode ambit = new TreeNode(ambitName, root);
+        root.hijos.add(ambit);
+        TreeNode tableNode = new TreeNode(Table, ambit);
+        ambit.hijos.add(tableNode);
     }
 
     public void evaluateDeclaration(TreeNode node) {
         for (int i = 1; i < node.hijos.size(); i++) {
             if (!node.hijos.get(i).value.toString().equals("Assignment")) {
-                if (!this.existInSymbolTable(node.hijos.get(i).value.toString())) {
+                if (!this.existInTable(this.list, node.hijos.get(i).value.toString())) {
                     this.list.add(new Row(node.hijos.get(i).value.toString(), this.type));
                 } else {
-                    System.out.println("Variable " + node.hijos.get(i).value.toString()
-                            + " ya ha sido declarada");
+                    System.out.println("Error semantico en linea " + node.line + ", columna " + node.column
+                            + ". Variable " + node.hijos.get(i).value.toString());
                 }
             } else {
                 evaluateAssignment(node.hijos.get(i), true);
@@ -306,36 +314,130 @@ public class Tree extends javax.swing.JFrame {
                 if (this.type.equals(node.getHijos().get(1).value.toString())) {
                     this.list.add(new Row(id, this.type));
                 } else {
-                    System.out.println("Variable: " + id + " es de tipo " + this.type);
+                    if (node.getHijos().get(1).value.toString().equals("Call")) {
+                        if (!this.evaluateCall(node.hijos.get(1), this.type, true)) {
+                            System.out.println("Error semantico en linea " + node.line + ", columna " + node.column
+                                    + ". Variable " + id + " es de tipo " + type);
+                        } else {
+                            this.list.add(new Row(id, this.type));
+                        }
+                    } else {
+                        System.out.println("Error semantico en linea " + node.line + ", columna " + node.column
+                                + ". Variable: " + id + " es de tipo " + this.type);
+                    }
                 }
             }
         } else {
-            if (this.existInSymbolTable(id)) {
-                type = this.getTypeById(node.getLefterSon().value.toString());
-                if (node.hijos.get(1).value.toString().equals(type)) {
-                    //En caso de modificar valor
-                } else {
-                    System.out.println("Variable " + id + " es de tipo " + type);
+            if (this.existInTable(this.list, id)) {
+                type = this.getTypeById(this.list, node.getLefterSon().value.toString());
+                if (!node.hijos.get(1).value.toString().equals(type)) {
+                    if (node.hijos.get(1).value.toString().equals("Call")) {
+                        if (!this.evaluateCall(node.hijos.get(1), type, true)) {
+                            System.out.println("Error semantico en linea " + node.line + ", columna " + node.column
+                                    + ". Variable " + id + " es de tipo " + type);
+                        }
+                    } else {
+                        System.out.println("Error semantico en linea " + node.line + ", columna " + node.column
+                                + ". Variable " + id + " es de tipo " + type);
+                    }
                 }
             } else {
-                System.out.println("Variable " + id + " no ha sido declarada");
+                System.out.println("Error semantico en linea " + node.line + ", columna " + node.column
+                        + ". Variable " + id + " no ha sido declarada");
             }
         }
     }
 
-    public boolean existInSymbolTable(String value) {
-        for (int i = 0; i < this.list.size(); i++) {
-            if (this.list.get(i).getId().equals(value)) {
+    public boolean evaluateCall(TreeNode node, String type, boolean verifyType) {
+        String name = node.getLefterSon().value.toString();
+        String params = "";
+        ArrayList<Row> functions = new ArrayList();
+        functions = (ArrayList<Row>) getLeftestSon(this.symbolTables.root).value;
+        ArrayList<Row> functionsWithSameParameters = new ArrayList();
+        boolean exist = existInTable(functions, name);
+
+        if (exist) {
+            functions = this.getItemsById(functions, name);
+            params = this.getFunctionParams(node);
+            functionsWithSameParameters = getFunctionsWithSameParameters(functions, params);
+        }
+
+        if (verifyType) {
+            if (this.verifyCallType(type, functionsWithSameParameters)) {
+                return true;
+            }
+        } else {
+            if (!exist) {
+                System.out.println("Error semantico en linea " + node.line + ", columna " + node.column
+                        + ". La funcion " + name + " no esta declarada");
+            } else {
+                if (functionsWithSameParameters.size() == 0) {
+                    System.out.println("Error semantico en linea " + node.line + ", columna " + node.column
+                        +". La funcion " + name + " no recibe esos parametros");
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public boolean verifyCallType(String type, ArrayList<Row> functions) {
+        for (int i = 0; i < functions.size(); i++) {
+            if (this.getFuntionReturnType(functions.get(i).type).equals(type)) {
                 return true;
             }
         }
         return false;
     }
 
-    public String getTypeById(String id) {
-        for (int i = 0; i < list.size(); i++) {
-            if (list.get(i).getId().equals(id)) {
-                return list.get(i).getType();
+    public String getFuntionReturnType(String type) {
+        String returnType = "";
+        boolean begin = false;
+
+        for (int i = 0; i < type.length(); i++) {
+            if (begin) {
+                returnType += type.charAt(i);
+            }
+
+            if (type.charAt(i) == '>') {
+                begin = true;
+            }
+        }
+        return returnType;
+    }
+
+    public ArrayList<Row> getFunctionsWithSameParameters(ArrayList<Row> functions, String params) {
+        ArrayList<Row> list = new ArrayList();
+        String word = "";
+        int index = 0;
+
+        for (int i = 0; i < functions.size(); i++) {
+            while (functions.get(i).type.charAt(index) != '-') {
+                word += functions.get(i).type.charAt(index);
+                index++;
+            }
+            if (word.equals(params)) {
+                list.add(functions.get(i));
+            }
+            word = "";
+            index = 0;
+        }
+        return list;
+    }
+
+    public boolean existInTable(ArrayList<Row> table, String value) {
+        for (int i = 0; i < table.size(); i++) {
+            if (table.get(i).getId().equals(value)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public String getTypeById(ArrayList<Row> table, String id) {
+        for (int i = 0; i < table.size(); i++) {
+            if (table.get(i).getId().equals(id)) {
+                return table.get(i).getType();
             }
         }
         return "null";
@@ -346,6 +448,34 @@ public class Tree extends javax.swing.JFrame {
             node = node.getLefterSon();
         }
         return node;
+    }
+
+    public ArrayList<Row> getItemsById(ArrayList<Row> list, String id) {
+        ArrayList<Row> items = new ArrayList();
+
+        for (int i = 0; i < list.size(); i++) {
+            if (list.get(i).id.equals(id)) {
+                items.add(list.get(i));
+            }
+        }
+        return items;
+    }
+
+    public String getFunctionParams(TreeNode node) {
+        String word = "";
+        int size = ((TreeNode) node.getHijos().get(1)).getHijos().size();
+
+        if (size > 0) {
+            for (int i = 0; i < size; i++) {
+                word += ((TreeNode) node.getHijos().get(1)).getHijos().get(i).value.toString();
+                if (i < size - 1) {
+                    word += " x ";
+                }
+            }
+        } else {
+            word += "void";
+        }
+        return word;
     }
 
     public void showTree(TreeNode parent, TreeNode node, DefaultTreeModel model, DefaultMutableTreeNode treeNode) {

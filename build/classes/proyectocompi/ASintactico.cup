@@ -187,19 +187,19 @@ parser code{:
 					"; "  + message);
 	}
 
-	public TreeNode verifyAssignmentOperator(TreeNode param){
+	public TreeNode verifyAssignmentOperator(TreeNode param,int line,int column){
 			TreeNode node = new TreeNode();
 
 			if(param.value.toString().equals(":=")){
-				node = new TreeNode("Assignment",null);
+				node = new TreeNode("Assignment",null,line,column);
 			}else if(param.value.toString().equals("+=")){
-				node = new TreeNode("SumAssignment",null);
+				node = new TreeNode("SumAssignment",null,line,column);
 			}else if(param.value.toString().equals("-=")){
-				node = new TreeNode("SubAssignment",null);
+				node = new TreeNode("SubAssignment",null,line,column);
 			}else if(param.value.toString().equals("*=")){
-				node = new TreeNode("MultAssignment",null);
+				node = new TreeNode("MultAssignment",null,line,column);
 			}else if(param.value.toString().equals("/=")){
-				node = new TreeNode("DivAssignment",null);
+				node = new TreeNode("DivAssignment",null,line,column);
 			}
 			return node;
 	}
@@ -229,6 +229,15 @@ parser code{:
 			functionTable.get(k).setId(functionNames.get(i));
 			k++;
 		}
+	}
+
+	public boolean existFunction(String id, String type){
+		for(int i = 0; i < functionTable.size(); i++){
+			if(id.equals(functionTable.get(i).getId()) && type.equals(functionTable.get(i).getType())){
+				return true;
+			}
+		}
+		return false;
 	}
 
 :};
@@ -340,6 +349,7 @@ non terminal READ;
 /*Gramatica del programa*/
 PROGRAM ::= MAIN:m FUNCTION{:
 						ArrayList list = new ArrayList();
+						ArrayList list2 = new ArrayList();
 					if(!parser.errorFound){
 						parser.tree = new MyTree(new TreeNode("Program", null));
 						parser.addNodeToTree(parser.tree.root, (TreeNode)m);
@@ -347,8 +357,10 @@ PROGRAM ::= MAIN:m FUNCTION{:
 						parser.addMultipleNodes(node,parser.functions,true);
 						parser.addNodeToTree(parser.tree.root,node);
 						list.add(parser.tree);
-						parser.addFunctionsToTable();
-						list.add(parser.functionTable);
+						for(int i = parser.functionTable.size()-1; i  >= 0; i--){
+							list2.add(parser.functionTable.get(i));
+						}
+						list.add(list2);
 						RESULT = list;
 					}else{
 						parser.tree = new MyTree(parser.node);
@@ -359,17 +371,17 @@ PROGRAM ::= MAIN:m FUNCTION{:
 			:};
 
 /*Gramatica para WRITE and READ*/
-WRITE ::= Write leftParenthesis CallParams rightParenthesis EOL{:
+WRITE ::= Write:W leftParenthesis CallParams rightParenthesis EOL{:
 				if(!parser.errorFound){
-					TreeNode node = new TreeNode("Write", null);
+					TreeNode node = new TreeNode("Write", null,Wleft+1,Wright+1);
 					parser.addMultipleNodes(node,parser.params,false);
 					parser.params = new ArrayList();
 					RESULT = node;
 				}
 	      :};
-READ ::= Read leftParenthesis VariableName:name rightParenthesis EOL{:
+READ ::= Read:R leftParenthesis VariableName:name rightParenthesis EOL{:
 				if(!parser.errorFound){
-					TreeNode node = new TreeNode("Read", null);
+					TreeNode node = new TreeNode("Read", null,Rleft+1,Rright+1);
 					TreeNode node1 = new TreeNode(name.toString(), null);
 					parser.addNodeToTree(node,node1);
 					RESULT = node;
@@ -513,9 +525,9 @@ ERROR ::= Call error:e{:
 		  :} WhileForBody;
 
 /*Gramatica para llamados a funciones*/
-CALL ::= Call VariableName:name CallHeader{:
+CALL ::= Call:C VariableName:name CallHeader{:
 				if(!parser.errorFound){
-		 			TreeNode node = new TreeNode("Call",null);
+		 			TreeNode node = new TreeNode("Call",null,Cleft+1,Cright+1);
 		 			TreeNode node3 = new TreeNode("FunctionParams",null);
 		 			TreeNode nameNode = new TreeNode(name.toString(),null);
 		 			parser.addNodeToTree(node,nameNode);
@@ -534,9 +546,9 @@ CallParams ::= leftValue:LV {:parser.params.add((TreeNode)LV);:} |
 CallParamsOrEmpty ::= CallParams|;
 
 /*Gramatica para funciones*/
-FUNCTION ::= Function VariableName:functionName FunctionHeader:FH  FunctionBody:body FUNCTION{:
+FUNCTION ::= Function:F VariableName:functionName FunctionHeader:FH  FunctionBody:body FUNCTION{:
 					if(!parser.errorFound){
-						TreeNode node = new TreeNode("function", null);
+						TreeNode node = new TreeNode("function", null,Fleft+1,Fright+1);
 						TreeNode params2 = new TreeNode("Parameters", null);
 						TreeNode nameNode = new TreeNode(functionName.toString(), null);
 						parser.addNodeToTree(node,nameNode);
@@ -544,8 +556,30 @@ FUNCTION ::= Function VariableName:functionName FunctionHeader:FH  FunctionBody:
 						parser.addNodeToTree(node,params2);
 						parser.addNodeToTree(node,(TreeNode)body);
 						parser.addMultipleNodes(params2,((ArrayList<TreeNode>)((ArrayList)FH).get(1)),false);
-						parser.functions.add(node);
-						parser.functionNames.add(functionName.toString());
+						Row fila = new Row();
+						String type = "";
+						if(((ArrayList<TreeNode>)((ArrayList)FH).get(1)).size()== 0){
+							type += "void->";
+						}else{
+							for(int i = 0; i < ((ArrayList<TreeNode>)((ArrayList)FH).get(1)).size(); i++){
+							 type+=((ArrayList<TreeNode>)((ArrayList)FH).get(1)).get(i).getLefterSon().value.toString();
+							 if(i == ((ArrayList<TreeNode>)((ArrayList)FH).get(1)).size()-1){
+							 	type+="->";
+							 }else{
+							 	type+=" x ";
+							 }
+							}	
+						}
+						type += ((TreeNode)((ArrayList)FH).get(0)).value.toString();
+						if(!parser.existFunction(functionName.toString(),type)){
+							fila.setId(functionName.toString());
+							fila.setType(type);
+							parser.functionTable.add(fila);
+							parser.functions.add(node);		
+						}else{
+							parser.errorFound = true;
+							parser.printError(Fleft+1,Fright+1,"Ya existe funcion " + functionName.toString() + " del mismo tipo");
+						}
 						parser.params2 = new ArrayList();
 					}
 			 :}|
@@ -556,9 +590,6 @@ FunctionHeader ::= leftParenthesis ParamsOrEmpty:P rightParenthesis TwoPoints Va
 							ArrayList arr = new ArrayList();
 							arr.add(type);
 							arr.add(P);
-							parser.row+="->" + type.toString();
-							parser.functionTable.add(new Row("",parser.row));
-							parser.row = "";
 							RESULT = arr;
 				   :}|
 				   error:e{:
@@ -612,9 +643,9 @@ Params ::= VariableType:type VariableName:name {:
 				}
 		   :};
 ParamsOrEmpty ::= Params:P{:RESULT = P;:}|;
-RETURN ::= Return leftValue:LV EOL{:
+RETURN ::= Return:R leftValue:LV EOL{:
 				if(!parser.errorFound){
-					TreeNode node = new TreeNode("Return", null);
+					TreeNode node = new TreeNode("Return", null,Rleft+1,Rright+1);
 					parser.addNodeToTree(node,(TreeNode)LV);
 					RESULT = node;
 				}
@@ -623,7 +654,7 @@ RETURN ::= Return leftValue:LV EOL{:
 /*Gramatica para declaraciones y asignaciones*/
 Declaration ::= VariableType:VType Assignment EOL {:
 					if(!parser.errorFound){
-						TreeNode declaration = new TreeNode("Declaration",null);
+						TreeNode declaration = new TreeNode("Declaration",null,VTypeleft+1,VTyperight+1);
 						TreeNode type = new TreeNode("Type",null);
 						TreeNode typeNode = new TreeNode(VType.toString(),null);
 						parser.addNodeToTree(declaration,type);
@@ -635,7 +666,7 @@ Declaration ::= VariableType:VType Assignment EOL {:
 				:};
 Assignment ::= VariableName:name AssignmentOperator:operator leftValue:leftVal {:
 					if(!parser.errorFound){
-						TreeNode assignment = parser.verifyAssignmentOperator((TreeNode)operator);
+						TreeNode assignment = parser.verifyAssignmentOperator((TreeNode)operator,nameleft+1,nameright+1);
 						TreeNode nameNode = new TreeNode(name.toString(),null);
 						parser.addNodeToTree(assignment,nameNode);
 						parser.addNodeToTree(assignment,(TreeNode)leftVal);
@@ -644,7 +675,7 @@ Assignment ::= VariableName:name AssignmentOperator:operator leftValue:leftVal {
 			   :}| 
                Assignment Delimeter VariableName:name AssignmentOperator:operator leftValue:leftVal {:
 					if(!parser.errorFound){
-						TreeNode assignment = new TreeNode("Assignment",null);
+						TreeNode assignment = new TreeNode("Assignment",null,nameleft+1,nameright+1);
 						TreeNode nameNode = new TreeNode(name.toString(),null);
 						parser.addNodeToTree(assignment,nameNode);
 						parser.addNodeToTree(assignment,(TreeNode)leftVal);
@@ -696,7 +727,7 @@ VariableType ::= Type:t {:RESULT = new TreeNode(t.toString(),null);:} |
                  ArrayType:t {:RESULT = new TreeNode(t.toString(),null);:}; 
 ArrayAssignment ::= Type:type LeftBracket AddSub:size RightBracket{:
 						if(!parser.errorFound){
-							TreeNode node = new TreeNode("ArrayAssignment",null);
+							TreeNode node = new TreeNode("ArrayAssignment",null,typeleft+1,typeright+1);
 							TreeNode node1 = new TreeNode(type.toString(),null);
 							TreeNode node2 = (TreeNode)size;
 							parser.addNodeToTree(node,node1);
@@ -704,9 +735,9 @@ ArrayAssignment ::= Type:type LeftBracket AddSub:size RightBracket{:
 							RESULT = node;
 						}
 					:} | 
-                    LeftBracket Element RightBracket{:
+                    LeftBracket Element:E RightBracket{:
                     	if(!parser.errorFound){
-                    		TreeNode node = new TreeNode("ArrayAssignment",null);
+                    		TreeNode node = new TreeNode("ArrayAssignment",null,Eleft+1,Eright+1);
                     		TreeNode node2 = new TreeNode("Elements",null);
                     		parser.addNodeToTree(node,node2);
                     		parser.addMultipleNodes(node2,parser.arrayElements,false);
@@ -722,7 +753,7 @@ Element ::= leftValue:LV {:
             :};
 SingleAssignment ::= VariableName:name AssignmentOperator:operator leftValue:LV EOL {:
 					 		if(!parser.errorFound){
-					 			TreeNode node = new TreeNode("Assignment",null);
+					 			TreeNode node = new TreeNode("Assignment",null,nameleft+1,nameright+1);
 					 			TreeNode nameNode = new TreeNode(name.toString(), null);
 					 			parser.addNodeToTree(node,nameNode);
 					 			parser.addNodeToTree(node,(TreeNode)LV);
@@ -730,7 +761,7 @@ SingleAssignment ::= VariableName:name AssignmentOperator:operator leftValue:LV 
 					 		}
 					 :}|VariableName:name LeftBracket AddSub:size RightBracket AssignmentOperator:operator leftValue:LV EOL{:
 					 			if(!parser.errorFound){
-					 			TreeNode node = new TreeNode("ArrayAssignment",null);
+					 			TreeNode node = new TreeNode("ArrayAssignment",null,nameleft+1,nameright+1);
 					 			TreeNode nameNode = new TreeNode(name.toString(), null);
 					 			parser.addNodeToTree(node,nameNode);
 					 			parser.addNodeToTree(node,(TreeNode)size);
@@ -740,9 +771,9 @@ SingleAssignment ::= VariableName:name AssignmentOperator:operator leftValue:LV 
 					 	:};
 
 /*Gramatica para switch*/
-SWITCH ::= Switch  ComparisonSwitch:variable LeftKey  CASE:C RightKey{:
+SWITCH ::= Switch:S  ComparisonSwitch:variable LeftKey  CASE:C RightKey{:
 				if(!parser.errorFound){
-					TreeNode node = new TreeNode("Switch",null);
+					TreeNode node = new TreeNode("Switch",null,Sleft+1,Sright+1);
 					parser.addNodeToTree(node, (TreeNode)variable);
 					parser.addMultipleNodes(node,(ArrayList<TreeNode>)C,false);
 					RESULT = node;
@@ -780,7 +811,7 @@ CASE ::= CASE:C CaseHeader:header CaseEnding:ending{:
 					if(C != null){
 							arr = (ArrayList<TreeNode>)C;
 					}
-					TreeNode caseNode = new TreeNode("Case", null);
+					TreeNode caseNode = new TreeNode("Case", null,Cleft+1,Cright+1);
 					parser.addNodeToTree(caseNode,(TreeNode)header);
 					parser.addNodeToTree(caseNode,(TreeNode)ending);
 					arr.add(caseNode);
@@ -795,9 +826,9 @@ CaseValues ::= Number:number {:RESULT = new TreeNode(number.toString(), null);:}
                Default:def{:RESULT = new TreeNode(def.toString(), null);:};
 
 /*Gramatica para if*/
-IF ::= If ComparisonInParenthesis:CP WhileForBody:body ELSEIF{:
+IF ::= If:I ComparisonInParenthesis:CP WhileForBody:body ELSEIF{:
 			if(!parser.errorFound){
-				TreeNode ifNode = new TreeNode("If", null);
+				TreeNode ifNode = new TreeNode("If", null,Ileft+1,Iright+1);
 				parser.addNodeToTree(ifNode,(TreeNode)CP);
 				parser.addNodeToTree(ifNode,(TreeNode)body);
 				parser.addMultipleNodes(ifNode,parser.ifs,true);
@@ -805,9 +836,9 @@ IF ::= If ComparisonInParenthesis:CP WhileForBody:body ELSEIF{:
 				RESULT =ifNode;
 			}
 	   :};
-ELSEIF ::= Elseif ComparisonInParenthesis:CP WhileForBody:body ELSEIF{:
+ELSEIF ::= Elseif:E ComparisonInParenthesis:CP WhileForBody:body ELSEIF{:
 				if(!parser.errorFound){
-					TreeNode elseif = new TreeNode("ElseIf", null);
+					TreeNode elseif = new TreeNode("ElseIf", null,Eleft+1,Eright+1);
 					parser.addNodeToTree(elseif,(TreeNode)CP);
 					parser.addNodeToTree(elseif,(TreeNode)body);
            			parser.ifs.add(elseif);
@@ -920,9 +951,9 @@ RelationalOperator ::=Equal {:RESULT = new TreeNode("==",null);:}|
                       LessEqual{:RESULT = new TreeNode("<=",null);:};
 
 /*Gramatica para for*/
-FOR ::= For paramsFor:cond WhileForBody:body{:
+FOR ::= For:F paramsFor:cond WhileForBody:body{:
 			if(!parser.errorFound){
-				TreeNode For = new TreeNode("For", null);
+				TreeNode For = new TreeNode("For", null,Fleft+1,Fright+1);
 				parser.addNodeToTree(For,(TreeNode)cond);
 				parser.addNodeToTree(For,(TreeNode)body);
 				RESULT = For;
@@ -960,9 +991,9 @@ rangeFor ::= AddSub:a1 ThreePoints AddSub:a2 {:
 	         :};
 
 /*Gramatica para while*/
-WHILE ::= While ComparisonInParenthesis:CP WhileForBody:body{:
+WHILE ::= While:W ComparisonInParenthesis:CP WhileForBody:body{:
 				if(!parser.errorFound){
-					TreeNode whileNode = new TreeNode("While", null);
+					TreeNode whileNode = new TreeNode("While", null,Wleft+1,Wright+1);
 					parser.addNodeToTree(whileNode,(TreeNode)CP);
 					parser.addNodeToTree(whileNode,(TreeNode)body);
 					RESULT = whileNode;

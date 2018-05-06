@@ -1,7 +1,9 @@
 main(){
-	int num;
-	num := 2;
-	int num2 := 3, num4 := 5;
+	boolean exist := call suma(true,2);
+	int number,n;
+	number := call suma(true,1);
+	n := 1+2*3-5/2;
+	call suma(true,2);
 	return 1;
 }
 
@@ -10,10 +12,16 @@ function suma(boolean a, int b):int{
 	return true;
 }
 
+function suma(boolean a, int b):boolean{
+	boolean num,num2,num3 := false;
+	return true;
+}
+
 function resta(int c, boolean d):boolean{
 	string word := 'Hola';
 	return false;
 }
+
 
 
 

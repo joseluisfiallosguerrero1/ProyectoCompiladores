@@ -13,6 +13,8 @@ import java.util.ArrayList;
  */
 public class TreeNode {
     Object value;
+    int line = 0;
+    int column = 0;
     TreeNode parent;
     int nivel;
     ArrayList<TreeNode> hijos = new ArrayList();
@@ -20,10 +22,22 @@ public class TreeNode {
     public TreeNode() {
         
     }
-
     public TreeNode(Object value, TreeNode Parent) {
         this.value = value;
         this.parent = Parent;
+        this.line = 0;
+        this.column = 0;
+        if (Parent != null) {
+            this.nivel = this.parent.nivel + 1;
+        } else {
+            this.nivel = 0;
+        }
+    }
+    public TreeNode(Object value, TreeNode Parent,int line,int column) {
+        this.value = value;
+        this.parent = Parent;
+        this.line = line;
+        this.column = column;
         if (Parent != null) {
             this.nivel = this.parent.nivel + 1;
         } else {
@@ -31,6 +45,30 @@ public class TreeNode {
         }
     }
 
+    public int getLine() {
+        return line;
+    }
+
+    public void setLine(int line) {
+        this.line = line;
+    }
+
+    public int getColumn() {
+        return column;
+    }
+
+    public void setColumn(int column) {
+        this.column = column;
+    }
+
+    public int getNivel() {
+        return nivel;
+    }
+
+    public void setNivel(int nivel) {
+        this.nivel = nivel;
+    }
+    
     public Object getValue() {
         return value;
     }
