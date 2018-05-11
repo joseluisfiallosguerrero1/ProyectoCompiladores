@@ -12,9 +12,14 @@ import java.util.ArrayList;
  * @author Usuario
  */
 public class SymbolTable {
+    String ambit = "";
     ArrayList<Row> list = new ArrayList();
-
+    
     public SymbolTable() {
+    }
+    
+    public SymbolTable(String word){
+        this.ambit = word;
     }
 
     public ArrayList<Row> getList() {
@@ -41,5 +46,9 @@ public class SymbolTable {
            }
         }
         return new Row("null", "null");
+    }
+    
+    public String toString(){
+        return ambit + " : " + list.toString();
     }
 }

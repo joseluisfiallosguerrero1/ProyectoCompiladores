@@ -218,86 +218,82 @@ public class Tree extends javax.swing.JFrame {
         ArrayList arr = new ArrayList();
         this.symbolTables = new MyTree(new TreeNode("Symbol Tables", null));
         result = new MyTree();
-        list = new ArrayList();
+        table = new SymbolTable("Functions");
+        node = this.symbolTables.root;
 
         try {
             arr = (ArrayList) parser.parse().value;
             result = (MyTree) arr.get(0);
-            list = (ArrayList<Row>) arr.get(1);
+            table.list = (ArrayList<Row>) arr.get(1);
             this.showTree(null, result.root, model, (DefaultMutableTreeNode) model.getRoot());
             System.out.println("Parseado correctamente");
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        this.addFunctionsToSymbolTable();
-        this.list = new ArrayList();
+        this.addTableToTree(table, this.symbolTables.root);
         System.out.println("");
         System.out.println("***************ANALISIS SEMANTICO*********************");
         TreeNode node = this.getLeftestSon(result.root);
-        this.evaluateTree(node.getParent(), node);
+        this.evaluateTree(this.result.root, this.result.root.getLefterSon());
     }
 
-    public void addFunctionsToSymbolTable() {
-        if (list.size() > 0) {
-            TreeNode node = new TreeNode("Functions", this.symbolTables.root);
-            this.symbolTables.root.hijos.add(node);
-            TreeNode node2 = new TreeNode(this.list, node);
-            node.hijos.add(node2);
-        }
+    public void addTableToTree(SymbolTable table, TreeNode parent) {
+        TreeNode node = new TreeNode(table, parent);
+        parent.addSon(node);
+        this.node = node;
+    }
+
+    public SymbolTable getTableFromNode(TreeNode node) {
+        return (SymbolTable) node.value;
     }
 
     public void evaluateTree(TreeNode parent, TreeNode node) {
-        if (parent == null) {
-            System.out.println("Recorrido terminado");
-        } else {
-            evaluateNode(node);
-            if (node.hasRightBrother()) {
-                node = getLeftestSon(node.getRightBrother());
-                evaluateTree(node.getParent(), node);
-            } else {
-                evaluateTree(parent.getParent(), parent);
-            }
+        evaluateNode(node);
+        if (node.isParent()) {
+            evaluateTree(node, node.getLefterSon());
+        }
+
+        if (node.hasRightBrother()) {
+            verifyExitFromBranch(node);
+            evaluateTree(parent, node.getRightBrother());
         }
     }
 
     public void evaluateNode(TreeNode node) {
-        if (node.value.toString().equals("Type")) {
-            this.type = node.getLefterSon().value.toString();
-        } else if (node.value.toString().equals("Declaration")) {
-            evaluateDeclaration(node);
+        if (node.value.toString().equals("Declaration")) {
+            this.type = this.getLeftestSon(node).value.toString();
+            this.evaluateDeclaration(node);
         } else if (node.value.toString().equals("Assignment")) {
-            evaluateAssignment(node, false);
+            this.evaluateAssignment(node, false);
         } else if (node.value.toString().equals("Main")) {
-            this.addTableToTree("Main", list, this.symbolTables.root);
-            this.list = new ArrayList();
+            this.table = new SymbolTable("Main");
+            this.addTableToTree(table, this.symbolTables.root);
         } else if (node.value.toString().equals("function")) {
-            this.addTableToTree(node.getLefterSon().value.toString(), list, this.symbolTables.root);
-            this.list = new ArrayList();
+            this.table = new SymbolTable(node.getLefterSon().value.toString());
+            this.addTableToTree(table, this.symbolTables.root);
         } else if (node.value.toString().equals("Call")) {
             this.evaluateCall(node, "", false);
-        }else if(node.value.toString().equals("int")){
-        
-        }else if(node.value.toString().equals("int2")){
-        
+        } else if (node.value.toString().equals("If")) {
+            this.table = new SymbolTable("If");
+            this.addTableToTree(table, this.node);
         }
     }
 
-    public void addTableToTree(String ambitName, ArrayList<Row> Table, TreeNode root) {
-        TreeNode ambit = new TreeNode(ambitName, root);
-        root.hijos.add(ambit);
-        TreeNode tableNode = new TreeNode(Table, ambit);
-        ambit.hijos.add(tableNode);
+    public void verifyExitFromBranch(TreeNode node) {
+        if (node.value.toString().equals("If")) {
+            this.node = this.node.getParent();
+        }
     }
 
     public void evaluateDeclaration(TreeNode node) {
         for (int i = 1; i < node.hijos.size(); i++) {
             if (!node.hijos.get(i).value.toString().equals("Assignment")) {
-                if (!this.existInTable(this.list, node.hijos.get(i).value.toString())) {
-                    this.list.add(new Row(node.hijos.get(i).value.toString(), this.type));
+                if (!this.existInTable(this.node, node.hijos.get(i).value.toString())) {
+                    this.getTableFromNode(this.node).list.add(new Row(node.hijos.get(i).value.toString(), this.type));
                 } else {
                     System.out.println("Error semantico en linea " + node.line + ", columna " + node.column
-                            + ". Variable " + node.hijos.get(i).value.toString());
+                            + ". Variable " + node.hijos.get(i).value.toString() + " ya ha sido declarada.");
                 }
             } else {
                 evaluateAssignment(node.hijos.get(i), true);
@@ -307,54 +303,121 @@ public class Tree extends javax.swing.JFrame {
 
     public void evaluateAssignment(TreeNode node, boolean isDeclaration) {
         String id = node.getLefterSon().value.toString();
+        TreeNode assignment = node.getHijos().get(1);
         String type = "";
 
         if (node.getParent().value.toString().equals("Declaration")) {
             if (isDeclaration) {
-                if (this.type.equals(node.getHijos().get(1).value.toString())) {
-                    this.list.add(new Row(id, this.type));
-                } else {
-                    if (node.getHijos().get(1).value.toString().equals("Call")) {
-                        if (!this.evaluateCall(node.hijos.get(1), this.type, true)) {
-                            System.out.println("Error semantico en linea " + node.line + ", columna " + node.column
-                                    + ". Variable " + id + " es de tipo " + type);
+                if (!this.existInTable(this.node, id)) {
+                    if (this.type.equals(assignment.value.toString())) {
+                        this.getTableFromNode(this.node).list.add(new Row(id, this.type));
+                    } else if (assignment.value.toString().equals("ArrayAssignment")) {
+                        evaluateArrayDeclaration(assignment, id);
+                    } else if (assignment.value.toString().equals("Call")) {
+                        if (this.evaluateCall(assignment, this.type, isDeclaration)) {
+                            this.getTableFromNode(this.node).list.add(new Row(id, this.type));
                         } else {
-                            this.list.add(new Row(id, this.type));
+                            System.out.println("Error semantico. " + " Variable " + id + " es de tipo " + this.type);
                         }
                     } else {
-                        System.out.println("Error semantico en linea " + node.line + ", columna " + node.column
-                                + ". Variable: " + id + " es de tipo " + this.type);
+                        System.out.println("Error semantico. " + " Variable " + id + " es de tipo " + this.type);
                     }
+                } else {
+                    System.out.println("Error Semantico. " + "Variable: " + id
+                            + " ya ha sido declarada");
                 }
             }
         } else {
-            if (this.existInTable(this.list, id)) {
-                type = this.getTypeById(this.list, node.getLefterSon().value.toString());
-                if (!node.hijos.get(1).value.toString().equals(type)) {
-                    if (node.hijos.get(1).value.toString().equals("Call")) {
-                        if (!this.evaluateCall(node.hijos.get(1), type, true)) {
-                            System.out.println("Error semantico en linea " + node.line + ", columna " + node.column
-                                    + ". Variable " + id + " es de tipo " + type);
-                        }
-                    } else {
-                        System.out.println("Error semantico en linea " + node.line + ", columna " + node.column
-                                + ". Variable " + id + " es de tipo " + type);
+            if (this.existInTable(this.node, id)) {
+                this.type = this.getTypeById(this.node, id);
+                System.out.println("Type: " + this.type);
+                if (this.type.equals(assignment.value.toString())) {
+                    //Todo bien
+                } else if (assignment.value.toString().equals("ArrayAssignment")) {
+                    
+                } else if (assignment.value.toString().equals("Call")) {
+
+                } else {
+                    System.out.println("Error Semantico. " + "Variable: " + id
+                            + " es de tipo " + this.type);
+                }
+            } else {
+                System.out.println("Error Semantico. " + "Variable: " + id
+                        + " no ha sido declarada");
+            }
+        }
+    }
+
+    public void evaluateArrayAssignment(TreeNode node, String id){
+        if(node.getHijos().size()>1){
+            
+        }
+    } 
+    public void evaluateArrayDeclaration(TreeNode node, String id) {
+        String type = this.type;
+        String size = "";
+
+        if (node.getHijos().size() > 1) {
+            this.type = node.getLefterSon().value.toString();
+            if (type.contains(this.type)) {
+                node = node.getHijos().get(1);
+                while (node.isParent()) {
+                    node = node.getLefterSon();
+                }
+                size = node.value.toString();
+                this.type = this.getArrayType(this.type, size);
+                this.getTableFromNode(this.node).list.add(new Row(id, this.type));
+            } else {
+                System.out.println("Error Semantico. " + " La variable " + id + " es de tipo " + type);
+            }
+        } else {
+            node = node.getLefterSon();
+            if (!this.sameTypeElements(node, id)) {
+                System.out.println("Error Semantico. Todos los elementos de " + id + " deben ser de tipo " + this.type);
+            } else {
+                size = node.getHijos().size() + "";
+                this.type = node.getHijos().get(0).value.toString();
+                this.type = this.getArrayType(this.type, size);
+                this.getTableFromNode(this.node).list.add(new Row(id, this.type));
+            }
+        }
+    }
+
+    public boolean sameTypeElements(TreeNode node, String id) {
+        String value = "";
+        String type = "";
+        TreeNode son = new TreeNode();
+        for (int i = 0; i < node.getHijos().size(); i++) {
+            son = this.getLeftestSon(node.getHijos().get(i));
+            value = son.value.toString();
+
+            if (son.parent.value.equals("int2")) {
+                type = this.getTypeById(this.node, value);
+                if (!Character.isDigit(value.charAt(0))) {
+                    if (!this.type.contains(type)) {
+                        return false;
+                    }
+                } else {
+                    if (!type.equals("int")) {
+                        return false;
                     }
                 }
             } else {
-                System.out.println("Error semantico en linea " + node.line + ", columna " + node.column
-                        + ". Variable " + id + " no ha sido declarada");
+                if (!this.type.equals(node.getHijos().get(i).parent.value.toString())) {
+                    return false;
+                }
             }
         }
+        return true;
     }
 
     public boolean evaluateCall(TreeNode node, String type, boolean verifyType) {
         String name = node.getLefterSon().value.toString();
         String params = "";
         ArrayList<Row> functions = new ArrayList();
-        functions = (ArrayList<Row>) getLeftestSon(this.symbolTables.root).value;
+        functions = ((SymbolTable) getLeftestSon(this.symbolTables.root).value).list;
         ArrayList<Row> functionsWithSameParameters = new ArrayList();
-        boolean exist = existInTable(functions, name);
+        boolean exist = existFunction(functions, name);
 
         if (exist) {
             functions = this.getItemsById(functions, name);
@@ -373,7 +436,7 @@ public class Tree extends javax.swing.JFrame {
             } else {
                 if (functionsWithSameParameters.size() == 0) {
                     System.out.println("Error semantico en linea " + node.line + ", columna " + node.column
-                        +". La funcion " + name + " no recibe esos parametros");
+                            + ". La funcion " + name + " no recibe esos parametros");
                 }
             }
         }
@@ -383,14 +446,14 @@ public class Tree extends javax.swing.JFrame {
 
     public boolean verifyCallType(String type, ArrayList<Row> functions) {
         for (int i = 0; i < functions.size(); i++) {
-            if (this.getFuntionReturnType(functions.get(i).type).equals(type)) {
+            if (this.getFunctionReturnType(functions.get(i).type).equals(type)) {
                 return true;
             }
         }
         return false;
     }
 
-    public String getFuntionReturnType(String type) {
+    public String getFunctionReturnType(String type) {
         String returnType = "";
         boolean begin = false;
 
@@ -404,6 +467,15 @@ public class Tree extends javax.swing.JFrame {
             }
         }
         return returnType;
+    }
+
+    public boolean existFunction(ArrayList<Row> list, String id) {
+        for (int i = 0; i < list.size(); i++) {
+            if (id.equals(list.get(i).id)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public ArrayList<Row> getFunctionsWithSameParameters(ArrayList<Row> functions, String params) {
@@ -425,20 +497,26 @@ public class Tree extends javax.swing.JFrame {
         return list;
     }
 
-    public boolean existInTable(ArrayList<Row> table, String value) {
-        for (int i = 0; i < table.size(); i++) {
-            if (table.get(i).getId().equals(value)) {
-                return true;
+    public boolean existInTable(TreeNode node, String value) {
+        while (node.getParent() != null) {
+            for (int i = 0; i < this.getTableFromNode(node).list.size(); i++) {
+                if (value.equals(this.getTableFromNode(node).list.get(i).id)) {
+                    return true;
+                }
             }
+            node = node.parent;
         }
         return false;
     }
 
-    public String getTypeById(ArrayList<Row> table, String id) {
-        for (int i = 0; i < table.size(); i++) {
-            if (table.get(i).getId().equals(id)) {
-                return table.get(i).getType();
+    public String getTypeById(TreeNode node, String value) {
+        while (node.getParent() != null) {
+            for (int i = 0; i < this.getTableFromNode(node).list.size(); i++) {
+                if (value.equals(this.getTableFromNode(node).list.get(i).id)) {
+                    return this.getTableFromNode(node).list.get(i).getType();
+                }
             }
+            node = node.parent;
         }
         return "null";
     }
@@ -476,6 +554,12 @@ public class Tree extends javax.swing.JFrame {
             word += "void";
         }
         return word;
+    }
+
+    public String getArrayType(String type, String size) {
+        String arrayType = "";
+        arrayType = "Array(0..." + (Integer.parseInt(size) - 1) + "," + type + ")";
+        return arrayType;
     }
 
     public void showTree(TreeNode parent, TreeNode node, DefaultTreeModel model, DefaultMutableTreeNode treeNode) {
@@ -545,5 +629,6 @@ public class Tree extends javax.swing.JFrame {
     MyTree result = new MyTree();
     MyTree symbolTables = new MyTree(new TreeNode("Symbol Tables", null));
     String type = "";
-    ArrayList<Row> list = new ArrayList();
+    SymbolTable table = new SymbolTable("");
+    TreeNode node = new TreeNode(table, null);
 }

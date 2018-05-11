@@ -1,46 +1,18 @@
 main(){
-	int opcion := 0;
-	write('Seleccione una opcion: ');
-	write('1. Factorial');
-	write('2. Primo');
-	read(opcion);
-
-	switch(opcion){
-		case 1:
-			int num := 0, result := 1;
-			write('Ingrese un numero: ');
-			read(num);
-
-			while(num > 1){
-				result *= num;
-				num -= 1;
-			}
-			write('El factorial de ', num, ' es ', result);
-		endcase;
-		case 2:
-			int num := 0;
-			boolean isPrime := true;
-			write('Ingrese un numero: ');
-			read(num);
-			
-			if(num > 3){
-				for(int i,2...num-1;1){
-					if(num mod 1 == 0){
-						isPrime := false;
-					}
-				}
-			}
-
-			if(isPrime == true){
-				write('Es Primo');
-			}else{
-				write('No es primo');
-			}			
-		endcase;
-		case default:
-			write('Esta opcion no existe');
-		endcase;
-	}
+	int a := 1, b := 3;
+	int[] arr := [a,b];
+	int[] arr2 := int[12];
+	boolean bool := call suma(a,true);
 
 	return 1;	
+} 
+
+function suma (boolean a, int b):int{
+	
+	return 2;
+}
+
+function suma (int a, boolean b):boolean{
+	
+	return 2;
 }

@@ -2,7 +2,18 @@ main(){
 	boolean exist := call suma(true,2);
 	int number,n;
 	number := call suma(true,1);
-	n := 1+2*3-5/2;
+	n := 1+2*a-5/(2*3);
+
+	if(a>b){
+		int a := 2;
+		if(a>b){
+			int b := 2;
+			if(a>b){
+			int c := 2;
+			c:= call suma(true,2);
+	}
+	}	
+	}
 	call suma(true,2);
 	return 1;
 }
