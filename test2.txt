@@ -1,18 +1,20 @@
 main(){
-	int a := 1, b := 3;
+	int a := 1;
+	int b := 2;
+	boolean c := call suma(a+b,call isPrime(a));
 	int[] arr := [a,b];
-	int[] arr2 := int[12];
-	boolean bool := call suma(a,true);
-
+	arr[0] := 2;
 	return 1;	
 } 
 
 function suma (boolean a, int b):int{
-	
+	int a;
 	return 2;
 }
-
+function isPrime(int num):boolean{
+	return true;	
+}
 function suma (int a, boolean b):boolean{
-	
+	int b;
 	return 2;
 }

@@ -525,13 +525,15 @@ ERROR ::= Call error:e{:
 		  :} WhileForBody;
 
 /*Gramatica para llamados a funciones*/
-CALL ::= Call:C VariableName:name CallHeader{:
+CALL ::= Call:C VariableName:name CallHeader:CH{:
 				if(!parser.errorFound){
 		 			TreeNode node = new TreeNode("Call",null,Cleft+1,Cright+1);
 		 			TreeNode node3 = new TreeNode("FunctionParams",null);
 		 			TreeNode nameNode = new TreeNode(name.toString(),null);
 		 			parser.addNodeToTree(node,nameNode);
 
+		 			parser.params = ((ArrayList<TreeNode>)CH);
+		 			
 		 			if(parser.params.size() > 0){
 		 				parser.addNodeToTree(node,node3);
 		 				parser.addMultipleNodes(node3,parser.params,false);
@@ -540,10 +542,19 @@ CALL ::= Call:C VariableName:name CallHeader{:
 		 			parser.params = new ArrayList();
 		 		}
 		 :};
-CallHeader ::= leftParenthesis CallParamsOrEmpty rightParenthesis;
-CallParams ::= leftValue:LV {:parser.params.add((TreeNode)LV);:} | 
-			   CallParams Delimeter leftValue:LV {:parser.params.add((TreeNode)LV);:};
-CallParamsOrEmpty ::= CallParams|;
+CallHeader ::= leftParenthesis CallParamsOrEmpty:CP{:RESULT = ((ArrayList<TreeNode>)CP);:} rightParenthesis;
+CallParams ::= leftValue:LV {:
+									ArrayList<TreeNode> arr = new ArrayList();
+									arr.add((TreeNode)LV);
+									RESULT = arr;
+							:} | 
+			   CallParams:CP Delimeter leftValue:LV {:
+			   			ArrayList<TreeNode> arr = new ArrayList();
+			   			arr = ((ArrayList<TreeNode>)CP);
+			   			arr.add((TreeNode) LV);
+			   			RESULT = arr;
+			   	:};
+CallParamsOrEmpty ::= CallParams:CP{:RESULT = ((ArrayList<TreeNode>)CP);:}| {:RESULT = new ArrayList<TreeNode>();:};
 
 /*Gramatica para funciones*/
 FUNCTION ::= Function:F VariableName:functionName FunctionHeader:FH  FunctionBody:body FUNCTION{:
@@ -761,7 +772,7 @@ SingleAssignment ::= VariableName:name AssignmentOperator:operator leftValue:LV 
 					 		}
 					 :}|VariableName:name LeftBracket AddSub:size RightBracket AssignmentOperator:operator leftValue:LV EOL{:
 					 			if(!parser.errorFound){
-					 			TreeNode node = new TreeNode("ArrayAssignment",null,nameleft+1,nameright+1);
+					 			TreeNode node = new TreeNode("ArrayElementAssignment",null,nameleft+1,nameright+1);
 					 			TreeNode nameNode = new TreeNode(name.toString(), null);
 					 			parser.addNodeToTree(node,nameNode);
 					 			parser.addNodeToTree(node,(TreeNode)size);

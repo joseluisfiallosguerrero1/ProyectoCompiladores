@@ -1,21 +1,11 @@
 main(){
-	boolean exist := call suma(true,2);
-	int number,n;
-	number := call suma(true,1);
-	n := 1+2*a-5/(2*3);
-
-	if(a>b){
-		int a := 2;
-		if(a>b){
-			int b := 2;
-			if(a>b){
-			int c := 2;
-			c:= call suma(true,2);
-	}
-	}	
-	}
-	call suma(true,2);
+	boolean c := call isPrime(call suma(true,1));
+	int[] arr := [1,2,3];
 	return 1;
+}
+
+function isPrime(int num):boolean{
+	return true;	
 }
 
 function suma(boolean a, int b):int{
