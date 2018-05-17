@@ -1,9 +1,28 @@
 main(){
 	int a := 1;
 	int b := 2;
-	boolean c := call suma(a+b,call isPrime(a));
-	int[] arr := [a,b];
-	arr[0] := 2;
+	boolean c := true;
+	boolean d;
+	d := call suma(a+b,c);
+	d := call suma(call suma(c,a), call isPrime(a+b));
+	boolean[] arr := [c,d]; 
+	boolean prueba := c;
+
+
+	for(int i,1...a;1){
+
+	}
+	char letra:='b';
+	switch(letra){
+		case 'a':
+		endcase;
+		case 'a':
+		endcase;
+		case default:
+		endcase;
+	}
+
+	char letter := 'a';
 	return 1;	
 } 
 

@@ -289,11 +289,26 @@ public class Tree extends javax.swing.JFrame {
         } else if (node.value.toString().equals("For")) {
             this.table = new SymbolTable("For");
             this.addTableToTree(table, this.node);
-        } else if (node.value.toString().equals("Variable")) {
-            this.getTableFromNode(this.node).list.add(new Row(node.getHijos().get(1).value.toString(), node.getLefterSon().value.toString()));
+            this.evaluateFor(node);
         } else if (node.value.toString().equals("Case")) {
             this.table = new SymbolTable("Case " + node.getLefterSon().value.toString());
             this.addTableToTree(table, this.node);
+        } else if (node.value.toString().equals("ArrayElementAssignment")) {
+            this.evaluateArrayElementAssignment(node);
+        } else if (node.value.toString().equals("Equal")) {
+            this.evaluateComparison(node);
+        } else if (node.value.toString().equals("GreaterThan")) {
+            this.evaluateComparison(node);
+        } else if (node.value.toString().equals("LessThan")) {
+            this.evaluateComparison(node);
+        } else if (node.value.toString().equals("Different")) {
+            this.evaluateComparison(node);
+        } else if (node.value.toString().equals("GreaterEqual")) {
+            this.evaluateComparison(node);
+        } else if (node.value.toString().equals("LessEqual")) {
+            this.evaluateComparison(node);
+        }else if(node.value.toString().equals("Switch")){
+            this.evaluateSwitch(node);
         }
     }
 
@@ -310,6 +325,78 @@ public class Tree extends javax.swing.JFrame {
             this.node = this.node.getParent();
         } else if (node.value.toString().equals("Case")) {
             this.node = this.node.getParent();
+        }
+    }
+
+    public void evaluateFor(TreeNode node) {
+        node = node.getLefterSon();
+        TreeNode variable = node.getLefterSon();
+        TreeNode range = node.getHijos().get(1);
+        TreeNode step = node.getHijos().get(2);
+        String id = variable.getHijos().get(1).value.toString();
+
+        if (variable.getLefterSon().value.equals("int")) {
+            if (this.existInTable(this.node, id)) {
+                System.out.println("Error semantico. La variable " + id + " ya ha sido declarada");
+                return;
+            }
+        } else {
+            System.out.println("Error semantico. La variable del for debe ser de tipo int");
+            return;
+        }
+
+        if (!(this.getNodeType(range.getHijos().get(0)).equals("int") && this.getNodeType(range.getHijos().get(1)).equals("int"))) {
+            System.out.println("Error semantico. Los rangos del for deben ser int");
+            return;
+        }
+
+        if (!this.getNodeType(step.getLefterSon()).equals("int")) {
+            System.out.println("Error semantico. El valor de incremento del for debe ser de tipo int");
+            return;
+        }
+        this.getTableFromNode(this.node).list.add(new Row(id, "int"));
+    }
+
+    public void evaluateSwitch(TreeNode node) {
+        String id = node.getLefterSon().value.toString();
+        String type = "";
+        String caseValue = "";
+        String caseValueType = "";
+
+        if (this.existInTable(this.node, id)) {
+            type = this.getTypeById(this.node, id);
+            for (int i = 1; i < node.getHijos().size() - 1; i++) {
+                caseValue = node.getHijos().get(i).getLefterSon().value.toString();
+                if (Character.isDigit(caseValue.charAt(0))) {
+                    caseValueType = "int";
+                } else {
+                    if (caseValue.length() == 1) {
+                        caseValueType = "char";
+                    } else {
+                        System.out.println("Error semantico. La variable del switch debe ser char o int");
+                        //return;
+                    }
+                }
+
+                if (!type.equals(caseValueType)) {
+                    System.out.println("Error semantico. Los valores del case deben ser de tipo " + type);
+                    //return;
+                }
+            }
+        } else {
+            System.out.println("Error semantico. La variable " + id + " no ha sido declarada.");
+        }
+    }
+
+    public void evaluateComparison(TreeNode node) {
+        String type1 = "";
+        String type2 = "";
+
+        type1 = this.getNodeType(node.getLefterSon());
+        type2 = this.getNodeType(node.getHijos().get(1));
+
+        if (!type1.equals(type2)) {
+            System.out.println("Error semantico. " + "Las comparaciones deben ser entre valores del mismo tipo");
         }
     }
 
@@ -333,20 +420,10 @@ public class Tree extends javax.swing.JFrame {
         TreeNode assignment = node.getHijos().get(1);
         String type = "";
 
-        if (assignment.value.toString().equals("int")) {
-            this.isInteger = true;
-            this.evaluateIntegers(null, assignment);
-            if (!this.isInteger) {
-                assignment.value = "intF";
-            }
-        }
-
         if (node.getParent().value.toString().equals("Declaration")) {
             if (isDeclaration) {
                 if (!this.existInTable(this.node, id)) {
-                    if (this.type.equals(assignment.value.toString())) {
-                        this.getTableFromNode(this.node).list.add(new Row(id, this.type));
-                    } else if (assignment.value.toString().equals("ArrayAssignment")) {
+                    if (assignment.value.toString().equals("ArrayAssignment")) {
                         evaluateArrayDeclaration(assignment, id, isDeclaration);
                     } else if (assignment.value.toString().equals("Call")) {
                         if (this.evaluateCall(assignment, this.type, isDeclaration)) {
@@ -355,7 +432,12 @@ public class Tree extends javax.swing.JFrame {
                             System.out.println("Error semantico. " + " Variable " + id + " es de tipo " + this.type);
                         }
                     } else {
-                        System.out.println("Error semantico. " + " Variable " + id + " es de tipo " + this.type);
+                        type = this.getNodeType(assignment);
+                        if (this.type.equals(type)) {
+                            this.getTableFromNode(this.node).list.add(new Row(id, this.type));
+                        } else {
+                            System.out.println("Error semantico. " + " Variable " + id + " es de tipo " + this.type);
+                        }
                     }
                 } else {
                     System.out.println("Error Semantico. " + "Variable: " + id
@@ -365,23 +447,53 @@ public class Tree extends javax.swing.JFrame {
         } else {
             if (this.existInTable(this.node, id)) {
                 this.type = this.getTypeById(this.node, id);
-                System.out.println("Type: " + this.type);
-                if (this.type.equals(assignment.value.toString())) {
-                    //Todo bien
-                } else if (assignment.value.toString().equals("ArrayAssignment")) {
+                if (assignment.value.toString().equals("ArrayAssignment")) {
                     evaluateArrayDeclaration(assignment, id, isDeclaration);
                 } else if (assignment.value.toString().equals("Call")) {
                     if (!this.evaluateCall(assignment, this.type, true)) {
                         System.out.println("Error semantico. " + " Variable " + id + " es de tipo " + this.type);
                     }
                 } else {
-                    System.out.println("Error Semantico. " + "Variable: " + id
-                            + " es de tipo " + this.type);
+                    type = this.getNodeType(assignment);
+                    if (!this.type.equals(type)) {
+                        System.out.println("Error semantico. " + " Variable " + id + " es de tipo " + this.type);
+                    }
                 }
             } else {
                 System.out.println("Error Semantico. " + "Variable: " + id
                         + " no ha sido declarada");
             }
+        }
+    }
+
+    public void evaluateArrayElementAssignment(TreeNode node) {
+        String name = node.getLefterSon().value.toString();
+        String type = "", varType = "";
+        TreeNode assignment = node.getHijos().get(2);
+
+        if (this.existInTable(this.node, name)) {
+            type = this.getTypeById(this.node, name);
+            type = this.getArrayType(type);
+
+            this.isInteger = true;
+            this.evaluateIntegers(null, node.getHijos().get(1));
+
+            if (this.isInteger) {
+                if (assignment.value.toString().equals("Call")) {
+                    if (!this.evaluateCall(assignment, type, true)) {
+                        System.out.println("Error semantico. La variable " + name + " es de tipo " + type);
+                    }
+                } else {
+                    varType = this.getNodeType(assignment);
+                    if (!type.equals(varType)) {
+                        System.out.println("Error semantico. La variable " + name + " es de tipo " + type);
+                    }
+                }
+            } else {
+                System.out.println("Error semantico: " + "La posicion del arreglo debe ser un entero");
+            }
+        } else {
+            System.out.println("Error semantico. " + "El arreglo " + name + " no existe.");
         }
     }
 
@@ -431,6 +543,11 @@ public class Tree extends javax.swing.JFrame {
     }
 
     public void evaluateIntegers(TreeNode parent, TreeNode node) {
+        if (node.value.toString().equals("*") && node.value.toString().equals("+")
+                && node.value.toString().equals("/") && node.value.toString().equals("-")) {
+            this.hasSymbol = true;
+        }
+
         if (!node.value.toString().equals("int") && !node.value.toString().equals("int2")
                 && !node.value.toString().equals("Parenthesis") && !node.value.toString().equals("*") && !node.value.toString().equals("+")
                 && !node.value.toString().equals("/") && !node.value.toString().equals("-")) {
@@ -438,7 +555,6 @@ public class Tree extends javax.swing.JFrame {
                 if (this.existInTable(this.node, node.value.toString())) {
                     if (!this.getTypeById(this.node, node.value.toString()).equals("int")) {
                         this.isInteger = false;
-                        System.out.println("Error semantico. " + "Variable " + node.value + " deber ser de tipo int");
                     }
                 } else {
                     this.isInteger = false;
@@ -483,25 +599,18 @@ public class Tree extends javax.swing.JFrame {
     public boolean sameTypeElements(TreeNode node, String id) {
         String type = "";
         for (int i = 0; i < node.getHijos().size(); i++) {
-            if (node.getHijos().get(i).value.toString().equals("int")) {
-                this.isInteger = true;
-                this.evaluateIntegers(null, node.getHijos().get(i));
-                if (!isInteger && this.type.contains("int")) {
-                    return false;
-                }
-                if (isInteger && !this.type.contains("int")) {
+            type = node.getHijos().get(i).value.toString();
+            if (type.equals("Call")) {
+                if (!this.evaluateCall(node.getHijos().get(i), this.type, true)) {
                     return false;
                 }
             } else {
-                type = node.getHijos().get(i).value.toString();
-                if (type.equals("Call")) {
-                    if (!this.evaluateCall(node.getHijos().get(i), this.type, true)) {
-                        return false;
-                    }
-                } else if (!this.type.contains(type)) {
+                type = this.getNodeType(node.getHijos().get(i));
+                if (!this.type.contains(type)) {
                     return false;
                 }
             }
+
         }
         return true;
     }
@@ -548,21 +657,13 @@ public class Tree extends javax.swing.JFrame {
                 word2 = ((TreeNode) node.getHijos().get(1)).getHijos().get(i).value.toString();
 
                 if (word2.equals("Call")) {
-                    if(this.evaluateCall(((TreeNode) node.getHijos().get(1)).getHijos().get(i), "void", true)){
-                        word +=  this.actualType;
-                    }else{
+                    if (this.evaluateCall(((TreeNode) node.getHijos().get(1)).getHijos().get(i), "void", true)) {
+                        word += this.actualType;
+                    } else {
                         word = "intF";
                     }
-                } else if (word2.equals("int")) {
-                    this.isInteger = true;
-                    this.evaluateIntegers(null, ((TreeNode) node.getHijos().get(1)).getHijos().get(i));
-                    if (!isInteger) {
-                        word = "intF";
-                    }else{
-                        word += "int";
-                    }
-                }else{
-                    word += word2;
+                } else {
+                    word += this.getNodeType(((TreeNode) node.getHijos().get(1)).getHijos().get(i));
                 }
 
                 if (i < size - 1) {
@@ -575,6 +676,49 @@ public class Tree extends javax.swing.JFrame {
         return word;
     }
 
+    public String getNodeType(TreeNode node) {
+        String word = "intF";
+        String id = "";
+
+        if (node.value.toString().equals("int")) {
+            this.isInteger = true;
+            this.hasSymbol = false;
+            this.evaluateIntegers(null, node);
+
+            if (!hasSymbol) {
+                id = this.getLeftestSon(node).value.toString();
+                if (Character.isDigit(id.charAt(0))) {
+                    word = "int";
+                } else {
+                    if (this.existInTable(this.node, id)) {
+                        word = this.getTypeById(this.node, id);
+                        if (word.equals("string")) {
+                            if (id.length() == 1) {
+                                word = "char";
+                            }
+                        }
+                    } else {
+                        System.out.println("Error semantico. Variable " + id + " no ha sido declarada");
+                    }
+                }
+
+            } else {
+                if (isInteger) {
+                    word = "int";
+                }
+            }
+        } else {
+            id = this.getLeftestSon(node).value.toString();
+            word = node.value.toString();
+            if (word.equals("string")) {
+                if (id.length() == 1) {
+                    word = "char";
+                }
+            }
+        }
+        return word;
+    }
+
     public boolean verifyCallType(String type, ArrayList<Row> functions) {
 
         for (int i = 0; i < functions.size(); i++) {
@@ -582,8 +726,8 @@ public class Tree extends javax.swing.JFrame {
                 return true;
             }
         }
-        
-        if(type.equals("void")){
+
+        if (type.equals("void")) {
             return true;
         }
         return false;
@@ -763,6 +907,6 @@ public class Tree extends javax.swing.JFrame {
     String type = "";
     SymbolTable table = new SymbolTable("");
     TreeNode node = new TreeNode(table, null);
-    boolean isInteger = true;
+    boolean isInteger = true, hasSymbol = false;
     String actualType = "";
 }
