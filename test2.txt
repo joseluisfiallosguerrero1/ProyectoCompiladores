@@ -1,24 +1,24 @@
 main(){
-	if(call suma(true,2) > 2){
-		
+	int num1:= 2, num2;
+	char letter,letter2:='4';
+	boolean cierto := true, falso := false;
+	string word1 := 'Hola';
+	string word2 := 'Adios';
+	int num3;
+	num3  := num1 + num2;
+
+	int[] arrayInt1 := int[24];
+	arrayInt1 := [num1,num2,num3,4,num3];
+	boolean[] arrayBoolean1 := boolean[12];
+
+	arrayBoolean1[2]:= true;
+	num3 := num2 + arrayInt1[1];
+	cierto:= arrayBoolean1[2];
+
+	if(arrayBoolean1[2] > true){
+
 
 	}
+
 	return 1;	
-} 
-
-function suma (boolean a, int b):int{
-	int a;
-
-	if(a>2){
-		return true;
-	}
-	return 2;
-}
-
-function isPrime(int num):boolean{
-	return true;	
-}
-function suma (int a, boolean b):boolean{
-	int b;
-	return true;
 }

@@ -914,7 +914,14 @@ MultipleMultDiv ::= MultOP ArithmeticOperation:AOP MultipleMultDiv {:
 						parser.operations.add((TreeNode)AOP);
 						parser.operations.add(new TreeNode("mod",null));
 					:}|;
-ArithmeticOperation ::= VariableName:name {:
+ArithmeticOperation ::= VariableName:name LeftBracket AddSub:number RightBracket{:
+													TreeNode node = new TreeNode("ArrayElement",null);
+													TreeNode nameNode = new TreeNode(name.toString(),null);
+													TreeNode index = (TreeNode) number;
+													parser.addNodeToTree(node,nameNode);
+													parser.addNodeToTree(node,index);
+													RESULT = node;
+											:}|VariableName:name {:
 							if(!parser.errorFound){
 								TreeNode nameNode = new TreeNode(name.toString(),null);  
 								RESULT = nameNode;
