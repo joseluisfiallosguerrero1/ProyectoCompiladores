@@ -271,11 +271,15 @@ public class Tree extends javax.swing.JFrame {
             this.addTableToTree(table, this.symbolTables.root);
             parentType = "int";
             parent = "Main";
+            returnCounter = 0;
+            hasReturn = false;
         } else if (node.value.toString().equals("function")) {
             this.table = new SymbolTable(node.getLefterSon().value.toString());
             this.addTableToTree(table, this.symbolTables.root);
             parentType = node.getHijos().get(1).value.toString();
             parent = node.getLefterSon().value.toString();
+            returnCounter = 0;
+            hasReturn = false;
         } else if (node.value.toString().equals("Call")) {
             this.evaluateCall(node, "", false);
         } else if (node.value.toString().equals("If")) {
@@ -328,6 +332,7 @@ public class Tree extends javax.swing.JFrame {
             }
         } else if (node.value.toString().equals("Return")) {
             this.evaluateReturn(node);
+            this.returnCounter++;
         }
     }
 
@@ -344,6 +349,25 @@ public class Tree extends javax.swing.JFrame {
             this.node = this.node.getParent();
         } else if (node.value.toString().equals("Case")) {
             this.node = this.node.getParent();
+        }else if(node.value.equals("Main")){
+            if(returnCounter!=1){
+                System.out.println("Error semantico. El main debe tener slo un return");
+            }
+            if(!hasReturn){
+                System.out.println("Error semantico. El main debe tener un return en el cuerpo principal");
+            }
+            
+            returnCounter = 0;
+        }else if(node.value.equals("function")){
+            if(returnCounter<1){
+                System.out.println("Error semantico. La funcion "+ this.parent+" debe tener al menos un return");
+            }
+            
+            if(!hasReturn){
+                System.out.println("Error semantico. La fucnion " + this.parent + 
+                        " debe tener un return en el cuerpo principal");
+            }
+            returnCounter = 1;
         }
     }
 
@@ -363,6 +387,15 @@ public class Tree extends javax.swing.JFrame {
             System.out.println("Error semantico. El retorno de " + parent
                     + " deber ser de tipo " + this.parentType);
         }
+        this.hasReturn = hasReturnInMainBody(node);
+    }
+    
+    public boolean hasReturnInMainBody(TreeNode node){
+        node = node.getParent().getParent();
+        if(node.value.toString().equals("Main") || node.value.toString().equals("function")){
+            return true;
+        }
+        return false;
     }
 
     public void evaluateFor(TreeNode node) {
@@ -957,7 +990,8 @@ public class Tree extends javax.swing.JFrame {
     String type = "";
     SymbolTable table = new SymbolTable("");
     TreeNode node = new TreeNode(table, null);
-    boolean isInteger = true, hasSymbol = false;
+    boolean isInteger = true, hasSymbol = false,hasReturn = false;
     String actualType = "";
     String parentType = "", parent = "";
+    int returnCounter = 0;
 }

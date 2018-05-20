@@ -1,6 +1,6 @@
 main(){
 	if(call suma(true,2) > 2){
-
+		
 
 	}
 	return 1;	
@@ -8,6 +8,10 @@ main(){
 
 function suma (boolean a, int b):int{
 	int a;
+
+	if(a>2){
+		return true;
+	}
 	return 2;
 }
 
