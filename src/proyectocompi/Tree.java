@@ -269,9 +269,13 @@ public class Tree extends javax.swing.JFrame {
         } else if (node.value.toString().equals("Main")) {
             this.table = new SymbolTable("Main");
             this.addTableToTree(table, this.symbolTables.root);
+            parentType = "int";
+            parent = "Main";
         } else if (node.value.toString().equals("function")) {
             this.table = new SymbolTable(node.getLefterSon().value.toString());
             this.addTableToTree(table, this.symbolTables.root);
+            parentType = node.getHijos().get(1).value.toString();
+            parent = node.getLefterSon().value.toString();
         } else if (node.value.toString().equals("Call")) {
             this.evaluateCall(node, "", false);
         } else if (node.value.toString().equals("If")) {
@@ -307,8 +311,23 @@ public class Tree extends javax.swing.JFrame {
             this.evaluateComparison(node);
         } else if (node.value.toString().equals("LessEqual")) {
             this.evaluateComparison(node);
-        }else if(node.value.toString().equals("Switch")){
+        } else if (node.value.toString().equals("Switch")) {
             this.evaluateSwitch(node);
+        } else if (node.value.toString().equals("Write")) {
+            for (int i = 0; i < node.getHijos().size(); i++) {
+                if (node.getHijos().get(i).value.toString().equals("Call")) {
+                    this.evaluateCall(node.getHijos().get(i), "void", true);
+                } else {
+                    this.getNodeType(node);
+                }
+            }
+        } else if (node.value.toString().equals("Read")) {
+            if (!this.existInTable(this.node, node.getLefterSon().value.toString())) {
+                System.out.println("Error semantico. Variable " + node.getLefterSon().value.toString()
+                        + " no ha sido declarada");
+            }
+        } else if (node.value.toString().equals("Return")) {
+            this.evaluateReturn(node);
         }
     }
 
@@ -325,6 +344,24 @@ public class Tree extends javax.swing.JFrame {
             this.node = this.node.getParent();
         } else if (node.value.toString().equals("Case")) {
             this.node = this.node.getParent();
+        }
+    }
+
+    public void evaluateReturn(TreeNode node) {
+        TreeNode value = node.getLefterSon();
+        String returnType = "";
+
+        if (value.value.toString().equals("Call")) {
+            if (this.evaluateCall(value, "void", true)) {
+                returnType = this.actualType;
+            }
+        } else {
+            returnType = this.getNodeType(value);
+        }
+
+        if (!this.parentType.equals(returnType)) {
+            System.out.println("Error semantico. El retorno de " + parent
+                    + " deber ser de tipo " + this.parentType);
         }
     }
 
@@ -392,8 +429,21 @@ public class Tree extends javax.swing.JFrame {
         String type1 = "";
         String type2 = "";
 
-        type1 = this.getNodeType(node.getLefterSon());
-        type2 = this.getNodeType(node.getHijos().get(1));
+        if (node.getLefterSon().value.toString().equals("Call")) {
+            if (this.evaluateCall(node.getLefterSon(), "void", true)) {
+                type1 = this.actualType;
+            }
+        } else {
+            type1 = this.getNodeType(node.getLefterSon());
+        }
+
+        if (node.getHijos().get(1).value.toString().equals("Call")) {
+            if (this.evaluateCall(node.getHijos().get(1), "void", true)) {
+                type2 = this.actualType;
+            }
+        } else {
+            type2 = this.getNodeType(node.getHijos().get(1));
+        }
 
         if (!type1.equals(type2)) {
             System.out.println("Error semantico. " + "Las comparaciones deben ser entre valores del mismo tipo");
@@ -632,16 +682,16 @@ public class Tree extends javax.swing.JFrame {
                 if (this.verifyCallType(type, functionsWithSameParameters)) {
                     return true;
                 }
-            } else {
-                if (!exist) {
-                    System.out.println("Error semantico en linea " + node.line + ", columna " + node.column
-                            + ". La funcion " + name + " no esta declarada");
-                } else {
-                    if (functionsWithSameParameters.size() == 0) {
-                        System.out.println("Error semantico en linea " + node.line + ", columna " + node.column
-                                + ". La funcion " + name + " no recibe esos parametros");
-                    }
-                }
+            }
+        }
+
+        if (!exist) {
+            System.out.println("Error semantico en linea " + node.line + ", columna " + node.column
+                    + ". La funcion " + name + " no esta declarada");
+        } else {
+            if (functionsWithSameParameters.size() == 0) {
+                System.out.println("Error semantico en linea " + node.line + ", columna " + node.column
+                        + ". La funcion " + name + " no recibe esos parametros");
             }
         }
 
@@ -909,4 +959,5 @@ public class Tree extends javax.swing.JFrame {
     TreeNode node = new TreeNode(table, null);
     boolean isInteger = true, hasSymbol = false;
     String actualType = "";
+    String parentType = "", parent = "";
 }

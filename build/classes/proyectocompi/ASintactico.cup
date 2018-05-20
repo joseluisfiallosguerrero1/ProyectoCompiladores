@@ -371,9 +371,10 @@ PROGRAM ::= MAIN:m FUNCTION{:
 			:};
 
 /*Gramatica para WRITE and READ*/
-WRITE ::= Write:W leftParenthesis CallParams rightParenthesis EOL{:
+WRITE ::= Write:W leftParenthesis CallParams:CP rightParenthesis EOL{:
 				if(!parser.errorFound){
 					TreeNode node = new TreeNode("Write", null,Wleft+1,Wright+1);
+					parser.params = (ArrayList<TreeNode>)CP;
 					parser.addMultipleNodes(node,parser.params,false);
 					parser.params = new ArrayList();
 					RESULT = node;
@@ -510,7 +511,20 @@ BODY ::=  BODY ERROR|
 		  			nodes.add((TreeNode)W);
 		  			RESULT = nodes;
 		  		}
-		  :}|;
+		  :}|
+		  BODY:B RETURN:W{:
+		  		if(!parser.errorFound){
+		  			ArrayList<TreeNode> nodes = new ArrayList();
+		  			if(B == null){
+		  				nodes = new ArrayList();
+		  			}else{
+		  				nodes = ((ArrayList<TreeNode>)B);
+		  			}
+		  			nodes.add((TreeNode)W);
+		  			RESULT = nodes;
+		  		}
+		  :}
+		  |;
 
 ERROR ::= Call error:e{:
 				parser.callError(eleft + 1, eright + 1);
@@ -609,12 +623,11 @@ FunctionHeader ::= leftParenthesis ParamsOrEmpty:P rightParenthesis TwoPoints Va
 				   	leftParenthesis ParamsOrEmpty rightParenthesis error:e{:
 			 			parser.functionError(eleft+1,eright+1,"Type");
 				   	:};
-FunctionBody ::= LeftKey BODY:body RETURN:R RightKey{:
+FunctionBody ::= LeftKey BODY:body RightKey{:
 						if(!parser.errorFound){
 							TreeNode bodyNode = new TreeNode("Body",null);
 							parser.body = (ArrayList<TreeNode>)body;
 							parser.addMultipleNodes(bodyNode,parser.body,false);
-							parser.addNodeToTree(bodyNode,(TreeNode)R);
 							RESULT = bodyNode;
 						}						
 				:}|
