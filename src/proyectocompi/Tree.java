@@ -261,6 +261,8 @@ public class Tree extends javax.swing.JFrame {
     }
 
     public void evaluateNode(TreeNode node) {
+        line = node.line;
+        column = node.column;
         if (node.value.toString().equals("Declaration")) {
             this.type = this.getLeftestSon(node).value.toString();
             this.evaluateDeclaration(node);
@@ -304,17 +306,17 @@ public class Tree extends javax.swing.JFrame {
         } else if (node.value.toString().equals("ArrayElementAssignment")) {
             this.evaluateArrayElementAssignment(node);
         } else if (node.value.toString().equals("Equal")) {
-            this.evaluateComparison(node,false);
+            this.evaluateComparison(node, false);
         } else if (node.value.toString().equals("GreaterThan")) {
-            this.evaluateComparison(node,true);
+            this.evaluateComparison(node, true);
         } else if (node.value.toString().equals("LessThan")) {
-            this.evaluateComparison(node,true);
+            this.evaluateComparison(node, true);
         } else if (node.value.toString().equals("Different")) {
-            this.evaluateComparison(node,false);
+            this.evaluateComparison(node, false);
         } else if (node.value.toString().equals("GreaterEqual")) {
-            this.evaluateComparison(node,true);
+            this.evaluateComparison(node, true);
         } else if (node.value.toString().equals("LessEqual")) {
-            this.evaluateComparison(node,true);
+            this.evaluateComparison(node, true);
         } else if (node.value.toString().equals("Switch")) {
             this.evaluateSwitch(node);
         } else if (node.value.toString().equals("Write")) {
@@ -333,6 +335,9 @@ public class Tree extends javax.swing.JFrame {
         } else if (node.value.toString().equals("Return")) {
             this.evaluateReturn(node);
             this.returnCounter++;
+        } else if (node.value.toString().equals("Parameter")) {
+            this.getTableFromNode(this.node).list.add(new Row(node.getHijos().get(1).value.toString(),
+                    node.getLefterSon().value.toString()));
         }
     }
 
@@ -351,23 +356,23 @@ public class Tree extends javax.swing.JFrame {
             this.node = this.node.getParent();
         } else if (node.value.equals("Main")) {
             if (returnCounter != 1) {
-                System.out.println("Error semantico en linea: " + node.line + ", columna: " + node.column + ". "
+                System.out.println("Error semantico en linea: " + line + ", columna: " + column + ". "
                         + "El main debe tener slo un return");
             }
             if (!hasReturn) {
-                System.out.println("Error semantico en linea: " + node.line + ", columna: " + node.column + ". "
+                System.out.println("Error semantico en linea: " + line + ", columna: " + column + ". "
                         + " El main debe tener un return en el cuerpo principal");
             }
 
             returnCounter = 0;
         } else if (node.value.equals("function")) {
             if (returnCounter < 1) {
-                System.out.println("Error semantico en linea: " + node.line + ", columna: " + node.column + ". "
+                System.out.println("Error semantico en linea: " + line + ", columna: " + column + ". "
                         + "La funcion " + this.parent + " debe tener al menos un return");
             }
 
             if (!hasReturn) {
-                System.out.println("Error semantico en linea: " + node.line + ", columna: " + node.column + ". "
+                System.out.println("Error semantico en linea: " + line + ", columna: " + column + ". "
                         + "La funcion " + this.parent
                         + " debe tener un return en el cuerpo principal");
             }
@@ -388,7 +393,7 @@ public class Tree extends javax.swing.JFrame {
         }
 
         if (!this.parentType.equals(returnType)) {
-            System.out.println("Error semantico en linea: " + node.line + ", columna: " + node.column + ". "
+            System.out.println("Error semantico en linea: " + line + ", columna: " + column + ". "
                     + "El retorno de " + parent
                     + " deber ser de tipo " + this.parentType);
         }
@@ -404,6 +409,8 @@ public class Tree extends javax.swing.JFrame {
     }
 
     public void evaluateFor(TreeNode node) {
+        line = node.getLine();
+        column = node.getColumn();
         node = node.getLefterSon();
         TreeNode variable = node.getLefterSon();
         TreeNode range = node.getHijos().get(1);
@@ -412,24 +419,24 @@ public class Tree extends javax.swing.JFrame {
 
         if (variable.getLefterSon().value.equals("int")) {
             if (this.existInTable(this.node, id)) {
-                System.out.println("Error semantico en linea: " + node.line + ", columna: " + node.column + ". "
+                System.out.println("Error semantico en linea: " + line + ", columna: " + column + ". "
                         + "La variable " + id + " ya ha sido declarada");
                 return;
             }
         } else {
-            System.out.println("Error semantico en linea: " + node.line + ", columna: " + node.column + ". "
+            System.out.println("Error semantico en linea: " + line + ", columna: " + column + ". "
                     + "La variable del for debe ser de tipo int");
             return;
         }
 
         if (!(this.getNodeType(range.getHijos().get(0)).equals("int") && this.getNodeType(range.getHijos().get(1)).equals("int"))) {
-            System.out.println("Error semantico en linea: " + node.line + ", columna: " + node.column + ". "
+            System.out.println("Error semantico en linea: " + line + ", columna: " + column + ". "
                     + "Los rangos del for deben ser int");
             return;
         }
 
         if (!this.getNodeType(step.getLefterSon()).equals("int")) {
-            System.out.println("Error semantico en linea: " + node.line + ", columna: " + node.column + ". "
+            System.out.println("Error semantico en linea: " + line + ", columna: " + column + ". "
                     + "El valor de incremento del for debe ser de tipo int");
             return;
         }
@@ -452,20 +459,20 @@ public class Tree extends javax.swing.JFrame {
                     if (caseValue.length() == 1) {
                         caseValueType = "char";
                     } else {
-                        System.out.println("Error semantico en linea: " + node.line + ", columna: " + node.column + ". "
+                        System.out.println("Error semantico en linea: " + line + ", columna: " + column + ". "
                                 + "La variable del switch debe ser char o int");
                         //return;
                     }
                 }
 
                 if (!type.equals(caseValueType)) {
-                    System.out.println("Error semantico en linea: " + node.line + ", columna: " + node.column + ". "
+                    System.out.println("Error semantico en linea: " + line + ", columna: " + column + ". "
                             + "Los valores del case deben ser de tipo " + type);
                     //return;
                 }
             }
         } else {
-            System.out.println("Error semantico en linea: " + node.line + ", columna: " + node.column + ". "
+            System.out.println("Error semantico en linea: " + line + ", columna: " + column + ". "
                     + "La variable " + id + " no ha sido declarada.");
         }
     }
@@ -491,12 +498,12 @@ public class Tree extends javax.swing.JFrame {
         }
         if (integers) {
             if (!(type1.equals("int") && type2.equals("int"))) {
-                System.out.println("Error semantico en linea: " + node.line + ", columna: " + node.column + ". "
+                System.out.println("Error semantico en linea: " + line + ", columna: " + column + ". "
                         + "Las comparaciones deben ser entre valores de tipo int");
             }
         } else {
             if (!type1.equals(type2)) {
-                System.out.println("Error semantico en linea: " + node.line + ", columna: " + node.column + ". "
+                System.out.println("Error semantico en linea: " + line + ", columna: " + column + ". "
                         + "Las comparaciones deben ser entre valores del mismo tipo");
             }
         }
@@ -508,7 +515,7 @@ public class Tree extends javax.swing.JFrame {
                 if (!this.existInTable(this.node, node.hijos.get(i).value.toString())) {
                     this.getTableFromNode(this.node).list.add(new Row(node.hijos.get(i).value.toString(), this.type));
                 } else {
-                    System.out.println("Error semantico en linea " + node.line + ", columna " + node.column
+                    System.out.println("Error semantico en linea " + line + ", columna " + column
                             + ". Variable " + node.hijos.get(i).value.toString() + " ya ha sido declarada.");
                 }
             } else {
@@ -531,7 +538,7 @@ public class Tree extends javax.swing.JFrame {
                         if (this.evaluateCall(assignment, this.type, isDeclaration)) {
                             this.getTableFromNode(this.node).list.add(new Row(id, this.type));
                         } else {
-                            System.out.println("Error semantico en linea: " + node.line + ", columna: " + node.column + ". "
+                            System.out.println("Error semantico en linea: " + line + ", columna: " + column + ". "
                                     + " Variable " + id + " es de tipo " + this.type);
                         }
                     } else {
@@ -539,12 +546,12 @@ public class Tree extends javax.swing.JFrame {
                         if (this.type.equals(type)) {
                             this.getTableFromNode(this.node).list.add(new Row(id, this.type));
                         } else {
-                            System.out.println("Error semantico en linea: " + node.line + ", columna: " + node.column + ". "
+                            System.out.println("Error semantico en linea: " + line + ", columna: " + column + ". "
                                     + " Variable " + id + " es de tipo " + this.type);
                         }
                     }
                 } else {
-                    System.out.println("Error semantico en linea: " + node.line + ", columna: " + node.column + ". "
+                    System.out.println("Error semantico en linea: " + line + ", columna: " + column + ". "
                             + "Variable: " + id
                             + " ya ha sido declarada");
                 }
@@ -556,18 +563,18 @@ public class Tree extends javax.swing.JFrame {
                     evaluateArrayDeclaration(assignment, id, isDeclaration);
                 } else if (assignment.value.toString().equals("Call")) {
                     if (!this.evaluateCall(assignment, this.type, true)) {
-                        System.out.println("Error semantico en linea: " + node.line + ", columna: " + node.column + ". "
+                        System.out.println("Error semantico en linea: " + line + ", columna: " + column + ". "
                                 + " Variable " + id + " es de tipo " + this.type);
                     }
                 } else {
                     type = this.getNodeType(assignment);
                     if (!this.type.equals(type)) {
-                        System.out.println("Error semantico en linea: " + node.line + ", columna: " + node.column + ". "
+                        System.out.println("Error semantico en linea: " + line + ", columna: " + column + ". "
                                 + " Variable " + id + " es de tipo " + this.type);
                     }
                 }
             } else {
-                System.out.println("Error semantico en linea: " + node.line + ", columna: " + node.column + ". "
+                System.out.println("Error semantico en linea: " + line + ", columna: " + column + ". "
                         + "Variable: " + id
                         + " no ha sido declarada");
             }
@@ -589,22 +596,22 @@ public class Tree extends javax.swing.JFrame {
             if (this.isInteger) {
                 if (assignment.value.toString().equals("Call")) {
                     if (!this.evaluateCall(assignment, type, true)) {
-                        System.out.println("Error semantico en linea: " + node.line + ", columna: " + node.column + ". "
+                        System.out.println("Error semantico en linea: " + line + ", columna: " + column + ". "
                                 + "La variable " + name + " es de tipo " + type);
                     }
                 } else {
                     varType = this.getNodeType(assignment);
                     if (!type.equals(varType)) {
-                        System.out.println("Error semantico en linea: " + node.line + ", columna: " + node.column + ". "
+                        System.out.println("Error semantico en linea: " +line + ", columna: " + column + ". "
                                 + "La variable " + name + " es de tipo " + type);
                     }
                 }
             } else {
-                System.out.println("Error semantico en linea: " + node.line + ", columna: " + node.column + ". "
+                System.out.println("Error semantico en linea: " + line + ", columna: " + column + ". "
                         + "La posicion del arreglo debe ser un entero");
             }
         } else {
-            System.out.println("Error semantico en linea: " + node.line + ", columna: " + node.column + ". "
+            System.out.println("Error semantico en linea: " + line + ", columna: " + column + ". "
                     + "El arreglo " + name + " no existe.");
         }
     }
@@ -612,7 +619,8 @@ public class Tree extends javax.swing.JFrame {
     public void evaluateArrayDeclaration(TreeNode node, String id, boolean isDeclaration) {
         String type = this.type;
         String size = "";
-
+        line = node.line;
+        column = node.column;
         if (node.getHijos().size() > 1) {
             this.type = node.getLefterSon().value.toString();
             if (type.contains(this.type)) {
@@ -631,19 +639,19 @@ public class Tree extends javax.swing.JFrame {
                         this.getRowById(this.node, id).setType(this.type);
                     }
                 } else {
-                    System.out.println("Error semantico en linea: " + node.line + ", columna: " + node.column + ". "
+                    System.out.println("Error semantico en linea: " + line + ", columna: " + column + ". "
                             + "El size del array debe ser un int");
                 }
             } else {
-                System.out.println("Error semantico en linea: " + node.line + ", columna: " + node.column + ". "
+                System.out.println("Error semantico en linea: " + line + ", columna: " + column + ". "
                         + " La variable " + id + " es de tipo " + type);
             }
         } else {
             node = node.getLefterSon();
             this.type = this.getArrayType(this.type);
             if (!this.sameTypeElements(node, id)) {
-                System.out.println("Error semantico en linea: " + node.line + ", columna: " + node.column + ". "
-                        + "Todos los elementos de " + id + " deben ser de tipo " + this.type);
+                System.out.println("Error semantico en linea: " + line + ", columna: " + column + ". "
+                        + "Todos los elementos de " + id + " deben ser de tipo " + this.type.replace("[]", ""));
             } else {
                 size = node.getHijos().size() + "";
                 this.type = node.getHijos().get(0).value.toString();
@@ -678,7 +686,7 @@ public class Tree extends javax.swing.JFrame {
                     }
                 } else {
                     this.isInteger = false;
-                    System.out.println("Error semantico en linea: " + node.line + ", columna: " + node.column + ". "
+                    System.out.println("Error semantico en linea: " + line + ", columna: " + column + ". "
                             + " Variable " + node.value.toString()
                             + " no ha sido declarada");
                 }
@@ -707,15 +715,15 @@ public class Tree extends javax.swing.JFrame {
                 if (isInteger) {
                     return type;
                 } else {
-                    System.out.println("Error semantico en linea: " + node.line + ", columna: " + node.column + ". "
+                    System.out.println("Error semantico en linea: " + line + ", columna: " + column + ". "
                             + "El indice de " + id + " debe ser de tipo int");
                 }
             } else {
-                System.out.println("Error semantico en linea: " + node.line + ", columna: " + node.column + ". "
+                System.out.println("Error semantico en linea: " + line + ", columna: " + column + ". "
                         + "La variable " + id + " no es un arreglo");
             }
         } else {
-            System.out.println("Error semantico en linea: " + node.line + ", columna: " + node.column + ". "
+            System.out.println("Error semantico en linea: " + line + ", columna: " + column + ". "
                     + "El arreglo " + id + " no ha sido declarado");
         }
         return "null";
@@ -764,6 +772,8 @@ public class Tree extends javax.swing.JFrame {
     }
 
     public boolean evaluateCall(TreeNode node, String type, boolean verifyType) {
+        line = node.line;
+        column = node.column;
         String name = node.getLefterSon().value.toString();
         String params = "";
         ArrayList<Row> functions = new ArrayList();
@@ -784,11 +794,11 @@ public class Tree extends javax.swing.JFrame {
         }
 
         if (!exist) {
-            System.out.println("Error semantico en linea " + node.line + ", columna " + node.column
+            System.out.println("Error semantico en linea " + line + ", columna " + column
                     + ". La funcion " + name + " no esta declarada");
         } else {
             if (functionsWithSameParameters.size() == 0) {
-                System.out.println("Error semantico en linea " + node.line + ", columna " + node.column
+                System.out.println("Error semantico en linea " + line + ", columna " + column
                         + ". La funcion " + name + " no recibe esos parametros");
             }
         }
@@ -851,7 +861,7 @@ public class Tree extends javax.swing.JFrame {
                             }
                         }
                     } else {
-                        System.out.println("Error semantico en linea: " + node.line + ", columna: " + node.column + ". "
+                        System.out.println("Error semantico en linea: " + line + ", columna: " + column + ". "
                                 + "Variable " + id + " no ha sido declarada");
                     }
                 }
@@ -1065,4 +1075,5 @@ public class Tree extends javax.swing.JFrame {
     String actualType = "";
     String parentType = "", parent = "";
     int returnCounter = 0;
+    int line = 0, column = 0;
 }

@@ -10,15 +10,19 @@ main(){
 	int[] arrayInt1 := int[24];
 	arrayInt1 := [num1,num2,num3,4,num3];
 	boolean[] arrayBoolean1 := boolean[12];
-
+	int[] array := [1,2,3,4,arrayInt1[1]];
 	arrayBoolean1[2]:= true;
 	num3 := num2 + arrayInt1[1];
 	cierto:= arrayBoolean1[2];
 
-	if(arrayBoolean1[2] > true){
-
+	if(arrayBoolean1[2] == true){
 
 	}
 
 	return 1;	
+}
+
+function suma(int num, int b):int{
+	int c;
+	return a;
 }
