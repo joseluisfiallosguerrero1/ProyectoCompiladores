@@ -877,69 +877,68 @@ ELSEIF ::= Elseif:E ComparisonInParenthesis:CP WhileForBody:body ELSEIF{:
            :}|;
 
 /*Gramatica para operaciones matematicas*/
-AddSub ::= MultDiv:MD MultipleAddSub:MAS {:
-		   		if(!parser.errorFound){
-		   			parser.operations.add((TreeNode)MD);
-						TreeNode AddSub = new TreeNode("int", null);
-						parser.addMultipleNodes(AddSub,parser.operations,true);
-						RESULT = AddSub;
-						parser.operations = new ArrayList();
-					}
-		   :};
-MultipleAddSub ::= AddOP MultDiv:MD MultipleAddSub:MAS {:
-                   		parser.operations.add((TreeNode)MD);
-                   		parser.operations.add(new TreeNode("+",null));
-                   :}| 
-                   SubOP MultDiv:MD MultipleAddSub {:
-                   		parser.operations.add((TreeNode)MD);
-                   		parser.operations.add(new TreeNode("-",null));
-                   :}|;
-MultDiv ::= ArithmeticOperation:AOP MultipleMultDiv {:
-				if(!parser.errorFound){
-					parser.operations.add((TreeNode)AOP);
-					TreeNode multDiv = new TreeNode("int2", null);
-					parser.addMultipleNodes(multDiv,parser.operations,true);
-					RESULT = multDiv;
-					parser.operations = new ArrayList();
-				}
-			:};
-MultipleMultDiv ::= MultOP ArithmeticOperation:AOP MultipleMultDiv {:
-						parser.operations.add((TreeNode)AOP);
-						parser.operations.add(new TreeNode("*",null));
-					:}| 
-                    DivOP ArithmeticOperation:AOP MultipleMultDiv{:
-						parser.operations.add((TreeNode)AOP);
-						parser.operations.add(new TreeNode("/",null));
-					:}|ModOP ArithmeticOperation:AOP MultipleMultDiv {:
-						parser.operations.add((TreeNode)AOP);
-						parser.operations.add(new TreeNode("mod",null));
-					:}|;
-ArithmeticOperation ::= VariableName:name LeftBracket AddSub:number RightBracket{:
-													TreeNode node = new TreeNode("ArrayElement",null);
-													TreeNode nameNode = new TreeNode(name.toString(),null);
-													TreeNode index = (TreeNode) number;
-													parser.addNodeToTree(node,nameNode);
-													parser.addNodeToTree(node,index);
-													RESULT = node;
-											:}|VariableName:name {:
-							if(!parser.errorFound){
-								TreeNode nameNode = new TreeNode(name.toString(),null);  
-								RESULT = nameNode;
-							}
-						:}| 
-                        Number:number {:
-                        	if(!parser.errorFound){
-								TreeNode nameNode = new TreeNode(number.toString(),null);
-                        		RESULT = nameNode;
-                        	}
-						:}|
-                        leftParenthesis AddSub:AS rightParenthesis{:
-                        	if(!parser.errorFound){
-                        		TreeNode parenthesis = new TreeNode("Parenthesis", null);
-                        		parser.addNodeToTree(parenthesis,(TreeNode)AS);
-                        		RESULT = parenthesis;
-                        	}
-                        :};  
+AddSub ::= AddSub:AS AddOP MultipleAddSub:MAS{:
+				TreeNode node = new TreeNode("add",null);
+				parser.addNodeToTree(node,(TreeNode)AS);
+				parser.addNodeToTree(node,(TreeNode)MAS);
+		   		RESULT = node;
+		   :}|
+		  AddSub:AS SubOP MultipleAddSub:MAS{:
+				TreeNode node = new TreeNode("sub",null);
+				parser.addNodeToTree(node,(TreeNode)AS);
+				parser.addNodeToTree(node,(TreeNode)MAS);
+				RESULT = node;
+		  :}|
+		  MultipleAddSub:MAS{:
+		  		RESULT = (TreeNode)MAS;
+		  	:};
+
+MultipleAddSub ::= MultipleAddSub:MAS MultOP MultDiv:MD{:
+				   		TreeNode node = new TreeNode("mult",null);
+				   		parser.addNodeToTree(node,(TreeNode)MAS);
+				   		parser.addNodeToTree(node,(TreeNode)MD);
+						RESULT = node;
+					:}|
+				   MultipleAddSub:MAS DivOP MultDiv:MD{:
+				   		TreeNode node = new TreeNode("div",null);
+				   		parser.addNodeToTree(node,(TreeNode)MAS);
+				   		parser.addNodeToTree(node,(TreeNode)MD);
+				   		RESULT = node;
+				   	:}|
+				   MultipleAddSub:MAS ModOP MultDiv:MD{:
+				   		TreeNode node = new TreeNode("mod",null);
+				   		parser.addNodeToTree(node,(TreeNode)MAS);
+				   		parser.addNodeToTree(node,(TreeNode)MD);
+				   		RESULT = node;
+				   	:}|
+				   MultDiv:MD {:
+				   		RESULT = (TreeNode)MD;
+				   	:};
+
+MultDiv ::= VariableName:variable {:
+				TreeNode node1 = new TreeNode("variable", null);
+				TreeNode node = new TreeNode(variable.toString(), null);
+				parser.addNodeToTree(node1,node);
+				RESULT = node1;
+			:}|
+			Number:number{:
+				TreeNode node1 = new TreeNode("Number", null);
+				TreeNode node = new TreeNode(number.toString(), null);
+				parser.addNodeToTree(node1,node);
+				RESULT = node1;
+			:}|
+			leftParenthesis AddSub:AS rightParenthesis{:
+				TreeNode node = new TreeNode("()",null);
+				parser.addNodeToTree(node,(TreeNode)AS);
+				RESULT = node;
+			:}|
+			VariableName:name LeftBracket AddSub:AS RightBracket{:
+					TreeNode node = new TreeNode("ArrayElement", null);
+					TreeNode nameNode = new TreeNode(name.toString(), null);
+					parser.addNodeToTree(node,nameNode);
+					parser.addNodeToTree(node,(TreeNode)AS);
+					RESULT = node;
+				:}; 
 
 /*Gramatica para comparaciones*/
 ComparisonInParenthesis ::= leftParenthesis Comparison rightParenthesis{:

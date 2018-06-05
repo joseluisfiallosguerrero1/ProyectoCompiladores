@@ -1,28 +1,17 @@
 main(){
-	int num1:= 2, num2;
-	char letter,letter2:='4';
-	boolean cierto := true, falso := false;
-	string word1 := 'Hola';
-	string word2 := 'Adios';
-	int num3;
-	num3  := num1 + num2;
+	boolean b := true;
+	string a := 'Hola';
+	int num := 2+3-4*5+7;
+	int[] arr := [1,2,3,num];
+	int num2 := arr[0];
+	boolean[] arr2 := boolean[10];
 
-	int[] arrayInt1 := int[24];
-	arrayInt1 := [num1,num2,num3,4,num3];
-	boolean[] arrayBoolean1 := boolean[12];
-	int[] array := [1,2,3,4,arrayInt1[1]];
-	arrayBoolean1[2]:= true;
-	num3 := num2 + arrayInt1[1];
-	cierto:= arrayBoolean1[2];
-
-	if(arrayBoolean1[2] == true){
-
-	}
-
+	arr2 := [b,b,b,b];
+	int callNum := call suma(call suma(num,num2),num2);
 	return 1;	
 }
 
 function suma(int num, int b):int{
 	int c;
-	return a;
+	return num;
 }
