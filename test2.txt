@@ -1,17 +1,17 @@
 main(){
-	boolean b := true;
-	string a := 'Hola';
-	int num := 2+3-4*5+7;
-	int[] arr := [1,2,3,num];
-	int num2 := arr[0];
-	boolean[] arr2 := boolean[10];
+	int a;
+	int b:= 0;
+	int[] arr := int[2];
+	arr[0] := 1;
+	arr[1] := 2;
 
-	arr2 := [b,b,b,b];
-	int callNum := call suma(call suma(num,num2),num2);
+	a := call suma(arr[b+0],arr[b+1]);
+	arr := [2,3,4]; 
 	return 1;	
 }
 
-function suma(int num, int b):int{
-	int c;
-	return num;
+function suma(int a, int b):int{
+	int suma:= a + b;
+	return suma;
 }
+

@@ -363,6 +363,7 @@ PROGRAM ::= MAIN:m FUNCTION{:
 						list.add(list2);
 						RESULT = list;
 					}else{
+						System.out.print("Entre Aqui");
 						parser.tree = new MyTree(parser.node);
 						list.add(parser.tree);
 						list.add(new ArrayList());
@@ -398,6 +399,7 @@ MAIN ::= Main leftParenthesis rightParenthesis FunctionBody:body{:
 		 :}|
 		 error:e{:
 		 		parser.printError(0,0,"Missing Main()");
+		 		
 		 :} FunctionBody;
 COMMENT ::= beginComment CompleteComment endComment;
 CompleteComment ::= CompleteComment Comment|;
@@ -466,6 +468,7 @@ BODY ::=  BODY ERROR|
 		  :}  | 
 		  BODY:B SWITCH:S {:
 		  		if(!parser.errorFound){
+		  			System.out.println("Llegue hasta aqui");
 		  			ArrayList<TreeNode> nodes = new ArrayList();
 		  			if(B == null){
 		  				nodes = new ArrayList();
@@ -607,6 +610,7 @@ FUNCTION ::= Function:F VariableName:functionName FunctionHeader:FH  FunctionBod
 						}
 						parser.params2 = new ArrayList();
 					}
+					RESULT = "";
 			 :}|
 			 error:e{:
 			 	parser.functionError(eleft+1,eright+1,"Function");
@@ -666,7 +670,7 @@ Params ::= VariableType:type VariableName:name {:
 					RESULT = arr;
 				}
 		   :};
-ParamsOrEmpty ::= Params:P{:RESULT = P;:}|;
+ParamsOrEmpty ::= Params:P{:RESULT = P;:}|{:RESULT = new ArrayList<TreeNode>();:};
 RETURN ::= Return:R leftValue:LV EOL{:
 				if(!parser.errorFound){
 					TreeNode node = new TreeNode("Return", null,Rleft+1,Rright+1);
@@ -696,6 +700,7 @@ Assignment ::= VariableName:name AssignmentOperator:operator leftValue:leftVal {
 						parser.addNodeToTree(assignment,(TreeNode)leftVal);
 						parser.assignments.add(assignment);
 					}
+					RESULT = "";
 			   :}| 
                Assignment Delimeter VariableName:name AssignmentOperator:operator leftValue:leftVal {:
 					if(!parser.errorFound){
@@ -705,18 +710,21 @@ Assignment ::= VariableName:name AssignmentOperator:operator leftValue:leftVal {
 						parser.addNodeToTree(assignment,(TreeNode)leftVal);
 						parser.assignments.add(assignment);
 					}
+					RESULT = "";
 			   :}|
 			   VariableName:name{:
 			   		if(!parser.errorFound){
 			   			TreeNode nameNode = new TreeNode(name.toString(), null);
 			   			parser.assignments.add(nameNode);
 			   		}
+			   		RESULT = "";
 			   	:}| 
 			   Assignment Delimeter VariableName:name{:
 			   		if(!parser.errorFound){
 			   			TreeNode nameNode = new TreeNode(name.toString(), null);
 			   			parser.assignments.add(nameNode);
 			   		}
+			   		RESULT = "";
 			   	:}; 
 leftValue ::= CALL:C{:
               	RESULT = C;
@@ -771,9 +779,11 @@ ArrayAssignment ::= Type:type LeftBracket AddSub:size RightBracket{:
                     :};
 Element ::= leftValue:LV {:
 				parser.arrayElements.add((TreeNode)LV);
+				RESULT = "";
 			:} | 
             Element Delimeter leftValue:LV {:
             	parser.arrayElements.add((TreeNode)LV);
+            	RESULT = "";
             :};
 SingleAssignment ::= VariableName:name AssignmentOperator:operator leftValue:LV EOL {:
 					 		if(!parser.errorFound){
@@ -809,8 +819,10 @@ SWITCH ::= Switch:S  ComparisonSwitch:variable LeftKey  CASE:C RightKey{:
 			:} CASE RightKey;
 ComparisonSwitch ::= leftParenthesis VariableName:name rightParenthesis {:
 							if(!parser.errorFound){
+								TreeNode node = new TreeNode("SwitchVariable",null);
 								TreeNode nameNode = new TreeNode(name.toString(),null);
-								RESULT = nameNode;
+								parser.addNodeToTree(node,nameNode);
+								RESULT = node;
 							}
 					 :};
 CaseHeader ::=	Case CaseValues:value TwoPoints{:
@@ -835,8 +847,10 @@ CASE ::= CASE:C CaseHeader:header CaseEnding:ending{:
 					if(C != null){
 							arr = (ArrayList<TreeNode>)C;
 					}
+
 					TreeNode caseNode = new TreeNode("Case", null,Cleft+1,Cright+1);
 					parser.addNodeToTree(caseNode,(TreeNode)header);
+		  			System.out.println("Ending: " + (TreeNode)ending);
 					parser.addNodeToTree(caseNode,(TreeNode)ending);
 					arr.add(caseNode);
 					RESULT = arr;
@@ -845,12 +859,27 @@ CASE ::= CASE:C CaseHeader:header CaseEnding:ending{:
 				error:e{:
 					parser.caseHeaderError(eleft+1, eright+1);
 				:} CaseEnding|;
-CaseValues ::= Number:number {:RESULT = new TreeNode(number.toString(), null);:}|
-               STRING:string{:RESULT = new TreeNode(string.toString(), null);:}|
-               Default:def{:RESULT = new TreeNode(def.toString(), null);:};
+CaseValues ::= Number:number {: 
+					TreeNode node = new TreeNode("CaseVariable", null);
+					TreeNode node2 = new TreeNode(number.toString(), null);
+					parser.addNodeToTree(node,node2);
+					RESULT = node;
+				:}|
+               STRING:string{:
+               			TreeNode node = new TreeNode("CaseVariable", null);
+						TreeNode node2 = new TreeNode(string.toString(), null);
+						parser.addNodeToTree(node,node2);
+               			RESULT = node;
+               		:}|
+               Default:def{:
+               		TreeNode node = new TreeNode("CaseVariable", null);
+					TreeNode node2 = new TreeNode(def.toString(), null);
+					parser.addNodeToTree(node,node2);
+               		RESULT = node;
+               	:};
 
 /*Gramatica para if*/
-IF ::= If:I ComparisonInParenthesis:CP WhileForBody:body ELSEIF{:
+IF ::= If:I leftParenthesis ComparisonInParenthesis:CP rightParenthesis WhileForBody:body ELSEIF{:
 			if(!parser.errorFound){
 				TreeNode ifNode = new TreeNode("If", null,Ileft+1,Iright+1);
 				parser.addNodeToTree(ifNode,(TreeNode)CP);
@@ -860,20 +889,24 @@ IF ::= If:I ComparisonInParenthesis:CP WhileForBody:body ELSEIF{:
 				RESULT =ifNode;
 			}
 	   :};
-ELSEIF ::= Elseif:E ComparisonInParenthesis:CP WhileForBody:body ELSEIF{:
+ELSEIF ::= Elseif:E leftParenthesis ComparisonInParenthesis:CP  rightParenthesis WhileForBody:body ELSEIF{:
 				if(!parser.errorFound){
 					TreeNode elseif = new TreeNode("ElseIf", null,Eleft+1,Eright+1);
 					parser.addNodeToTree(elseif,(TreeNode)CP);
 					parser.addNodeToTree(elseif,(TreeNode)body);
            			parser.ifs.add(elseif);
            		}
+           		RESULT = "";
 	       :}|
            Else WhileForBody:body{:
            		if(!parser.errorFound){
            			TreeNode elseNode = new TreeNode("Else",null);
+           			TreeNode condition = new TreeNode("ElseCondition",null);
+           			parser.addNodeToTree(elseNode,condition);
            			parser.addNodeToTree(elseNode,(TreeNode)body);
            			parser.ifs.add(elseNode);
            		}
+           		RESULT = "";
            :}|;
 
 /*Gramatica para operaciones matematicas*/
@@ -941,45 +974,41 @@ MultDiv ::= VariableName:variable {:
 				:}; 
 
 /*Gramatica para comparaciones*/
-ComparisonInParenthesis ::= leftParenthesis Comparison rightParenthesis{:
-									if(!parser.errorFound){
-										TreeNode condition = new TreeNode("Conditions", null);
-										int contador = -1;
-										if(parser.params.size()>0){
-											contador = 0;
-										}
-										for(int i = parser.comparisons.size()-1; i >= 0; i--){
-											parser.addNodeToTree(condition,parser.comparisons.get(i));
-											if(contador>-1 && contador<parser.params.size()){
-												parser.addNodeToTree(condition,parser.params.get(contador));
-												contador++;
-											}
-										}
-										parser.params = new ArrayList();
-										parser.comparisons = new ArrayList();
-										RESULT = condition;
-									}
+ComparisonInParenthesis ::= ComparisonInParenthesis:CIP Or MultipleComparison:MC {:
+								TreeNode node = new TreeNode("OR", null);
+								parser.addNodeToTree(node,(TreeNode)CIP);
+								parser.addNodeToTree(node,(TreeNode)MC);
+								RESULT = node;
+							:}|
+							MultipleComparison:MC {:
+								RESULT = (TreeNode)MC;	
 							:};
-Comparison ::= leftValue:LV RelationalOperator:operator leftValue:RV MultipleComparison{:
-						if(!parser.errorFound){
-							TreeNode comparison = parser.verifyComparisonOperator((TreeNode)operator);
-							parser.addNodeToTree(comparison,(TreeNode)LV);
-							parser.addNodeToTree(comparison,(TreeNode)RV);
-							parser.comparisons.add(comparison);
-						}
-				:};
-MultipleComparison ::= AndOr:AO Comparison{:
-							RESULT = AO;
-					   :}|;
-AndOr ::= And{:RESULT = parser.params.add(new TreeNode("AND", null));:}|
-          Or{:RESULT = parser.params.add(new TreeNode("OR", null));:};
-RelationalOperator ::=Equal {:RESULT = new TreeNode("==",null);:}| 
-                      NotEqual {:RESULT = new TreeNode("!=",null);:}| 
-                      GreaterThan {:RESULT = new TreeNode(">",null);:}| 
-                      LessThan {:RESULT = new TreeNode("<",null);:}| 
-                      GreaterEqual {:RESULT = new TreeNode(">=",null);:}| 
-                      LessEqual{:RESULT = new TreeNode("<=",null);:};
 
+MultipleComparison ::= MultipleComparison:MC And AndOr:AO{:
+							TreeNode node = new TreeNode("AND", null);
+							parser.addNodeToTree(node,(TreeNode)MC);
+							parser.addNodeToTree(node,(TreeNode)AO);
+							RESULT = node;
+						:}|AndOr:AO {:
+							RESULT = (TreeNode)AO;
+						:};
+
+AndOr ::= Comparison:comp {:
+			RESULT = (TreeNode) comp;
+		:};
+
+Comparison ::= leftValue:LV1 RelationalOperator:RO leftValue:LV2 {:
+					parser.addNodeToTree((TreeNode) RO, (TreeNode)LV1);
+					parser.addNodeToTree((TreeNode) RO, (TreeNode)LV2);
+					RESULT = (TreeNode)RO;
+				:};
+
+RelationalOperator ::=Equal {:RESULT = new TreeNode("Equal",null);:}| 
+                      NotEqual {:RESULT = new TreeNode("Different",null);:}| 
+                      GreaterThan {:RESULT = new TreeNode("GreaterThan",null);:}| 
+                      LessThan {:RESULT = new TreeNode("LessThan",null);:}| 
+                      GreaterEqual {:RESULT = new TreeNode("GreaterEqual",null);:}| 
+                      LessEqual{:RESULT = new TreeNode("LessEqual",null);:};
 /*Gramatica para for*/
 FOR ::= For:F paramsFor:cond WhileForBody:body{:
 			if(!parser.errorFound){
@@ -992,7 +1021,7 @@ FOR ::= For:F paramsFor:cond WhileForBody:body{:
 paramsFor ::= leftParenthesis  declarationFor:V Delimeter rangeFor:R EOL AddSub:A rightParenthesis{:
 					if(!parser.errorFound){
 						TreeNode node = new TreeNode("Condition", null);
-						TreeNode step = new TreeNode("stepValue", null);
+						TreeNode step = new TreeNode("StepValue", null);
 						parser.addNodeToTree(node,(TreeNode)V);
 						parser.addNodeToTree(node,(TreeNode)R);
 						parser.addNodeToTree(node,step);
@@ -1002,7 +1031,7 @@ paramsFor ::= leftParenthesis  declarationFor:V Delimeter rangeFor:R EOL AddSub:
 	          :};
 declarationFor ::= Type:type VariableName:name {:
 						if(!parser.errorFound){
-							TreeNode var = new TreeNode("Variable", null);
+							TreeNode var = new TreeNode("ForVariable", null);
 							TreeNode typeNode = new TreeNode(type.toString(), null);
 							TreeNode nameNode = new TreeNode(name.toString(), null);
 							parser.addNodeToTree(var,typeNode);
@@ -1021,7 +1050,7 @@ rangeFor ::= AddSub:a1 ThreePoints AddSub:a2 {:
 	         :};
 
 /*Gramatica para while*/
-WHILE ::= While:W ComparisonInParenthesis:CP WhileForBody:body{:
+WHILE ::= While:W leftParenthesis ComparisonInParenthesis:CP rightParenthesis WhileForBody:body{:
 				if(!parser.errorFound){
 					TreeNode whileNode = new TreeNode("While", null,Wleft+1,Wright+1);
 					parser.addNodeToTree(whileNode,(TreeNode)CP);

@@ -12,11 +12,14 @@ import java.util.ArrayList;
  * @author josef
  */
 public class TreeNode {
+    boolean visited = false;
     Object value;
     int line = 0;
     int column = 0;
     TreeNode parent;
     int nivel;
+    String tag = "";
+    String verdadera = "",falsa = "",siguiente = "",primero = "";
     ArrayList<TreeNode> hijos = new ArrayList();
     
     public TreeNode() {
