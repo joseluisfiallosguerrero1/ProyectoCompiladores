@@ -209,6 +209,7 @@ public class Tree extends javax.swing.JFrame {
 
     private void jButton3MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton3MouseClicked
         // TODO add your handling code here:
+        this.optimizer(this.cuadruplos.list);
         this.showCuadruplos();
     }//GEN-LAST:event_jButton3MouseClicked
 
@@ -2444,6 +2445,66 @@ public class Tree extends javax.swing.JFrame {
         for (int i = 7; i >= 0; i--) {
             this.tempStack.push("$t" + i);
         }
+    }
+    
+    public ArrayList optimizer(ArrayList<RowIntermediate> cuad){
+        ArrayList<String> nombres = new ArrayList();
+        ArrayList<String> tempCambiado = new ArrayList();
+        for (int i = 0; i < cuad.size(); i++) {
+            String tempOp = cuad.get(i).getOperator();
+            String tempArg1 = cuad.get(i).getArg1();
+            String tempArg2 = cuad.get(i).getArg2();
+            String tempRes = cuad.get(i).getResult();
+            if ((tempRes.startsWith("t")&&((tempRes.endsWith("8"))||
+                    (tempRes.endsWith("9"))||tempRes.length()>2))) {
+                nombres.add(tempRes);
+            }
+            if (tempOp.equals("+")||tempOp.equals("-")||tempOp.equals("*")||
+                    tempOp.equals("/")||tempOp.equals(":=")||
+                    tempOp.equals("=[]")||tempOp.equals("[]=")) {
+                if (tempArg1.startsWith("t")&&
+                    ((tempArg1.endsWith("0"))||(tempArg1.endsWith("1"))||
+                    (tempArg1.endsWith("2"))||(tempArg1.endsWith("3"))||
+                    (tempArg1.endsWith("4"))||(tempArg1.endsWith("5")||
+                    (tempArg1.endsWith("6")))||(tempArg1.endsWith("7"))||
+                    (tempArg1.endsWith("8"))||(tempArg1.endsWith("9")))) {
+                    tempCambiado.add(tempArg1);
+                }
+                if (tempArg2.startsWith("t")&&
+                    ((tempArg2.endsWith("0"))||(tempArg2.endsWith("1"))||
+                    (tempArg2.endsWith("2"))||(tempArg2.endsWith("3"))||
+                    (tempArg2.endsWith("4"))||(tempArg2.endsWith("5")||
+                    (tempArg2.endsWith("6")))||(tempArg2.endsWith("7"))||
+                    (tempArg1.endsWith("8"))||(tempArg1.endsWith("9")))) {
+                    tempCambiado.add(tempArg2);
+                }
+                
+            }
+        }
+        for (int i = 0; i < nombres.size(); i++) {
+            for (int j = 0; j < tempCambiado.size(); j++) {
+                if (nombres.get(i).equals(tempCambiado.get(j))) {
+                    tempCambiado.set(j, tempCambiado.get(i));
+                }
+            }
+        }
+        for (int i = 0; i < nombres.size(); i++) {
+            for (int j = 0; j < cuad.size(); j++) {
+                String tempArg1 = cuad.get(j).getArg1();
+                String tempArg2 = cuad.get(j).getArg2();
+                String tempRes = cuad.get(j).getResult();
+                String viejoTemp = nombres.get(i);
+                String nuevoTemp = tempCambiado.get(i);
+                if (tempRes.equals(viejoTemp)) {
+                    cuad.get(j).setResult(nuevoTemp);
+                }else if (tempArg1.equals(viejoTemp)) {
+                    cuad.get(j).setArg1(nuevoTemp);
+                }else if (tempArg2.equals(viejoTemp)) {
+                    cuad.get(j).setArg2(nuevoTemp);
+                }
+            }  
+        }
+        return cuad;
     }
 
     /**
