@@ -2475,7 +2475,7 @@ public class Tree extends javax.swing.JFrame {
                     (tempArg2.endsWith("2"))||(tempArg2.endsWith("3"))||
                     (tempArg2.endsWith("4"))||(tempArg2.endsWith("5")||
                     (tempArg2.endsWith("6")))||(tempArg2.endsWith("7"))||
-                    (tempArg1.endsWith("8"))||(tempArg1.endsWith("9")))) {
+                    (tempArg2.endsWith("8"))||(tempArg2.endsWith("9")))) {
                     tempCambiado.add(tempArg2);
                 }
                 
