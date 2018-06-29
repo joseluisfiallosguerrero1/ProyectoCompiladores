@@ -12,7 +12,9 @@ package proyectocompi;
 public class Row {
     String id;
     String type;
-
+    int offset = 0;
+    boolean isParameter = false;
+    
     public Row() {
     }
 
@@ -39,7 +41,7 @@ public class Row {
 
     @Override
     public String toString() {
-        return  "{id: " + id + ", type: " + type + "}" + '\n';
+        return  "{id: " + id + ", type: " + type + ", offset: " + offset+"}" + '\n';
     }
     
     

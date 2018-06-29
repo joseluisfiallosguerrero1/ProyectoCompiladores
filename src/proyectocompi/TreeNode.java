@@ -18,6 +18,7 @@ public class TreeNode {
     int column = 0;
     TreeNode parent;
     int nivel;
+    int tableID = 0;
     String tag = "";
     String verdadera = "",falsa = "",siguiente = "",primero = "";
     ArrayList<TreeNode> hijos = new ArrayList();

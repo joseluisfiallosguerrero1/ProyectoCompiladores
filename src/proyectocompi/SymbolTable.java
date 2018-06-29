@@ -14,6 +14,7 @@ import java.util.ArrayList;
 public class SymbolTable {
     String ambit = "";
     ArrayList<Row> list = new ArrayList();
+    int blockID = 0;
     
     public SymbolTable() {
     }
@@ -49,6 +50,6 @@ public class SymbolTable {
     }
     
     public String toString(){
-        return ambit + " : " + list.toString();
+        return "ID: " + blockID + ", " +ambit + " : " + list.toString();
     }
 }

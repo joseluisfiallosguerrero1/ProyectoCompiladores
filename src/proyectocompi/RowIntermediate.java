@@ -14,7 +14,11 @@ public class RowIntermediate {
     String arg1;
     String arg2;
     String result;
-
+    int size = -2;
+    int table = 0;
+    String type = "null";
+    String extra = "null";
+            
     public RowIntermediate() {
     }
 

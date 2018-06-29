@@ -757,34 +757,18 @@ AssignmentOperator ::= Assign {:RESULT = new TreeNode(":=",null);:} |
                        DivEqual{:RESULT = new TreeNode("/=",null);:};
 VariableType ::= Type:t {:RESULT = new TreeNode(t.toString(),null);:} | 
                  ArrayType:t {:RESULT = new TreeNode(t.toString(),null);:}; 
-ArrayAssignment ::= Type:type LeftBracket AddSub:size RightBracket{:
+ArrayAssignment ::= Type:type LeftBracket Number:N RightBracket{:
 						if(!parser.errorFound){
 							TreeNode node = new TreeNode("ArrayAssignment",null,typeleft+1,typeright+1);
 							TreeNode node1 = new TreeNode(type.toString(),null);
-							TreeNode node2 = (TreeNode)size;
+							TreeNode node2 = new TreeNode("Number",null,typeleft+1,typeright+1);
+							TreeNode node3 = new TreeNode(N.toString(),null,typeleft+1,typeright+1);
+							parser.addNodeToTree(node2,node3);
 							parser.addNodeToTree(node,node1);
 							parser.addNodeToTree(node,node2);
 							RESULT = node;
 						}
-					:} | 
-                    LeftBracket Element:E RightBracket{:
-                    	if(!parser.errorFound){
-                    		TreeNode node = new TreeNode("ArrayAssignment",null,Eleft+1,Eright+1);
-                    		TreeNode node2 = new TreeNode("Elements",null);
-                    		parser.addNodeToTree(node,node2);
-                    		parser.addMultipleNodes(node2,parser.arrayElements,false);
-                    		RESULT = node;
-                    		parser.arrayElements = new ArrayList();
-                    	}
-                    :};
-Element ::= leftValue:LV {:
-				parser.arrayElements.add((TreeNode)LV);
-				RESULT = "";
-			:} | 
-            Element Delimeter leftValue:LV {:
-            	parser.arrayElements.add((TreeNode)LV);
-            	RESULT = "";
-            :};
+					:};
 SingleAssignment ::= VariableName:name AssignmentOperator:operator leftValue:LV EOL {:
 					 		if(!parser.errorFound){
 					 			TreeNode node = new TreeNode("Assignment",null,nameleft+1,nameright+1);

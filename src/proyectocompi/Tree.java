@@ -9,10 +9,13 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Stack;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
@@ -272,6 +275,8 @@ public class Tree extends javax.swing.JFrame {
             arr = (ArrayList) parser.parse().value;
             result = (MyTree) arr.get(0);
             table.list = (ArrayList<Row>) arr.get(1);
+            table.blockID = this.blockID;
+            this.blockID++;
             this.showTree(null, result.root, model, (DefaultMutableTreeNode) model.getRoot());
             System.out.println("Parseado correctamente");
         } catch (Exception e) {
@@ -284,9 +289,15 @@ public class Tree extends javax.swing.JFrame {
         this.evaluateTree(this.result.root, this.result.root.getLefterSon());
         if (!this.hasSemanticErrors) {
             this.cuadruplos = new IntermediateTable();
-            this.cuadruplos.list.add(new RowIntermediate("ETIQ", this.globalTag, "", ""));
+            this.cuadruplos.list.add(new RowIntermediate("F_ETIQ", this.globalTag, "0", ""));
+            this.currentF_ETIQ = this.globalTag;
             TreeNode node = this.getLeftestSon(result.root);
             this.inspectTree(node.parent, node);
+            this.cuadruplos.list.add(new RowIntermediate("F_ETIQ2", this.currentF_ETIQ, "", ""));
+            //JOptionPane.showMessageDialog(this, "Codigo Final generado correctamente");
+            //String fileName = JOptionPane.showInputDialog("Seleccion un mombre para su asm");
+            //this.generateASM(fileName);
+            this.generateFinalCode();
         } else {
             JOptionPane.showMessageDialog(this, "Se han encontrado errores semanticos");
         }
@@ -324,6 +335,8 @@ public class Tree extends javax.swing.JFrame {
             this.evaluateAssignment(node, false);
         } else if (node.value.toString().equals("Main")) {
             this.table = new SymbolTable("Main");
+            this.table.blockID = this.blockID;
+            this.blockID++;
             this.addTableToTree(table, this.symbolTables.root);
             parentType = "int";
             parent = "Main";
@@ -331,6 +344,11 @@ public class Tree extends javax.swing.JFrame {
             hasReturn = false;
         } else if (node.value.toString().equals("function")) {
             this.table = new SymbolTable(node.getLefterSon().value.toString());
+            this.table.blockID = this.blockID;
+            this.blockID++;
+            this.offsetStack.push(this.offset);
+            this.offset = 0;
+            this.isFirst = true;
             this.addTableToTree(table, this.symbolTables.root);
             parentType = node.getHijos().get(1).value.toString();
             parent = node.getLefterSon().value.toString();
@@ -339,36 +357,42 @@ public class Tree extends javax.swing.JFrame {
         } else if (node.value.toString().equals("Call")) {
             this.evaluateCall(node, "", false);
         } else if (node.value.toString().equals("If")) {
-            System.out.println("entre a if");
             this.table = new SymbolTable("If");
-            this.addTableToTree(table, this.node);
+            this.table.blockID = this.blockID;
+            this.blockID++;
+            this.offsetStack.push(this.offset);
+            this.addTableToTree(this.table, this.node);
         } else if (node.value.toString().equals("While")) {
             this.table = new SymbolTable("While");
+            this.table.blockID = this.blockID;
+            this.blockID++;
+            this.offsetStack.push(this.offset);
             this.addTableToTree(table, this.node);
         } else if (node.value.toString().equals("ElseIf")) {
-            this.table = new SymbolTable("ElseIf");
-            if (((SymbolTable) this.node.value).ambit.equals("If")) {
-                System.out.println("Entre");
-                this.addTableToTree(table, this.node.parent);
-            }else{
-                this.addTableToTree(table, this.node);
-            }
+            this.table = new SymbolTable("Elseif");
+            this.table.blockID = this.blockID;
+            this.blockID++;
+            this.offsetStack.push(this.offset);
+            this.addTableToTree(table, this.node);
         } else if (node.value.toString().equals("Else")) {
-            System.out.println("entre a else");
             this.table = new SymbolTable("Else");
-            if (((SymbolTable) this.node.value).ambit.equals("If")) {
-                System.out.println("Entre");
-                this.addTableToTree(table, this.node.parent);
-            }else{
-                this.addTableToTree(table, this.node);
-            }
+            this.table.blockID = this.blockID;
+            this.blockID++;
+            this.offsetStack.push(this.offset);
+            this.addTableToTree(table, this.node);
         } else if (node.value.toString().equals("For")) {
             this.table = new SymbolTable("For");
+            this.table.blockID = this.blockID;
+            this.blockID++;
+            this.offsetStack.push(this.offset);
             this.addTableToTree(table, this.node);
             this.evaluateFor(node);
         } else if (node.value.toString().equals("Case")) {
             this.table = new SymbolTable("Case " + node.getLefterSon().value.toString());
+            this.table.blockID = this.blockID;
+            this.blockID++;
             this.addTableToTree(table, this.node);
+            this.offsetStack.push(this.offset);
         } else if (node.value.toString().equals("ArrayElementAssignment")) {
             this.evaluateArrayElementAssignment(node);
         } else if (node.value.toString().equals("Equal")) {
@@ -390,7 +414,7 @@ public class Tree extends javax.swing.JFrame {
                 if (node.getHijos().get(i).value.toString().equals("Call")) {
                     this.evaluateCall(node.getHijos().get(i), "void", true);
                 } else {
-                    this.getNodeType(node);
+                    this.getNodeType(node.getHijos().get(i));
                 }
             }
         } else if (node.value.toString().equals("Read")) {
@@ -398,32 +422,50 @@ public class Tree extends javax.swing.JFrame {
                 this.hasSemanticErrors = true;
                 System.out.println("Error semantico. Variable " + node.getLefterSon().value.toString()
                         + " no ha sido declarada");
+            } else {
+                node.getLefterSon().tableID = this.currentID;
             }
         } else if (node.value.toString().equals("Return")) {
             this.evaluateReturn(node);
             this.returnCounter++;
         } else if (node.value.toString().equals("Parameter")) {
-            this.getTableFromNode(this.node).list.add(new Row(node.getHijos().get(1).value.toString(),
-                    node.getLefterSon().value.toString()));
+            String type = node.getLefterSon().value.toString();
+            int size = this.getTypeSize(type);
+            this.temporalRow = new Row(node.getHijos().get(1).value.toString(),
+                    node.getLefterSon().value.toString());
+            this.paramsOffset += size;
+            this.temporalRow.offset = paramsOffset;
+            this.temporalRow.isParameter = true;
+            this.getTableFromNode(this.node).list.add(temporalRow);
+        } else if (node.value.toString().equals("Body")) {
+            if (node.parent.value.toString().equals("function")) {
+                this.paramsOffset = 0;
+                this.isFirstParam = true;
+            }
         }
     }
 
     public void verifyExitFromBranch(TreeNode node) {
-        if (node.value.toString().equals("If")) {
-            System.out.println("Sali de if");
+        if (node.value.toString().equals("Body")) {
+            if (node.parent.value.toString().equals("If")) {
+                this.node = this.node.getParent();
+                this.offset = this.offsetStack.pop();
+            }
         } else if (node.value.toString().equals("While")) {
-            System.out.println("Salgo de while a: " + ((SymbolTable) this.node.getParent().value).ambit);
             this.node = this.node.getParent();
+            this.offset = this.offsetStack.pop();
         } else if (node.value.toString().equals("ElseIf")) {
             this.node = this.node.getParent();
-            System.out.println("Sali de elseif");
+            this.offset = this.offsetStack.pop();
         } else if (node.value.toString().equals("Else")) {
             this.node = this.node.getParent();
-            System.out.println("sali de else");
+            this.offset = this.offsetStack.pop();
         } else if (node.value.toString().equals("For")) {
             this.node = this.node.getParent();
+            this.offset = this.offsetStack.pop();
         } else if (node.value.toString().equals("Case")) {
             this.node = this.node.getParent();
+            this.offset = this.offsetStack.pop();
         } else if (node.value.equals("Main")) {
             if (returnCounter != 1) {
                 this.hasSemanticErrors = true;
@@ -464,6 +506,8 @@ public class Tree extends javax.swing.JFrame {
             }
         } else {
             returnType = this.getNodeType(value);
+            System.out.println("Mi tipoo es: " + returnType);
+            node.getLefterSon().tableID = this.currentID;
         }
 
         if (!this.parentType.equals(returnType)) {
@@ -498,6 +542,8 @@ public class Tree extends javax.swing.JFrame {
                 System.out.println("Error semantico en linea: " + line + ", columna: " + column + ". "
                         + "La variable " + id + " ya ha sido declarada");
                 return;
+            } else {
+                variable.tableID = this.blockID - 1;
             }
         } else {
             this.hasSemanticErrors = true;
@@ -519,7 +565,12 @@ public class Tree extends javax.swing.JFrame {
                     + "El valor de incremento del for debe ser de tipo int");
             return;
         }
-        this.getTableFromNode(this.node).list.add(new Row(id, "int"));
+        this.temporalRow = new Row(id, "int");
+        int size = this.getTypeSize("int");
+        this.offset += size;
+        this.temporalRow.offset = this.offset;
+        this.getTableFromNode(this.node).list.add(this.temporalRow);
+        variable.getHijos().get(1).tableID = this.getTableFromNode(this.node).blockID;
     }
 
     public void evaluateSwitch(TreeNode node) {
@@ -534,9 +585,11 @@ public class Tree extends javax.swing.JFrame {
                 caseValue = node.getHijos().get(i).getLefterSon().getLefterSon().value.toString();
                 if (Character.isDigit(caseValue.charAt(0))) {
                     caseValueType = "int";
+                    node.getLefterSon().getLefterSon().tableID = this.currentID;
                 } else {
                     if (caseValue.length() == 1) {
                         caseValueType = "char";
+                        node.getLefterSon().getLefterSon().tableID = this.currentID;
                     } else {
                         this.hasSemanticErrors = true;
                         System.out.println("Error semantico en linea: " + line + ", columna: " + column + ". "
@@ -594,10 +647,22 @@ public class Tree extends javax.swing.JFrame {
     }
 
     public void evaluateDeclaration(TreeNode node) {
+        int size = 0;
         for (int i = 1; i < node.hijos.size(); i++) {
             if (!node.hijos.get(i).value.toString().equals("Assignment")) {
                 if (!this.existInTable(this.node, node.hijos.get(i).value.toString())) {
-                    this.getTableFromNode(this.node).list.add(new Row(node.hijos.get(i).value.toString(), this.type));
+                    if (this.type.contains("[]")) {
+                        this.hasSemanticErrors = true;
+                        System.out.println("Error semantico en linea " + line + ", columna " + column
+                                + ". Arreglo debe ser inicializado.");
+                    } else {
+                        this.temporalRow = new Row(node.hijos.get(i).value.toString(), this.type);
+                        size = this.getTypeSize(this.type);
+                        this.offset += size;
+                        this.temporalRow.offset = this.offset;
+                        this.getTableFromNode(this.node).list.add(temporalRow);
+                        node.hijos.get(i).tableID = this.getTableFromNode(this.node).blockID;
+                    }
                 } else {
                     this.hasSemanticErrors = true;
                     System.out.println("Error semantico en linea " + line + ", columna " + column
@@ -613,15 +678,21 @@ public class Tree extends javax.swing.JFrame {
         String id = node.getLefterSon().value.toString();
         TreeNode assignment = node.getHijos().get(1);
         String type = "";
+        int size = 0;
 
         if (node.getParent().value.toString().equals("Declaration")) {
             if (isDeclaration) {
                 if (!this.existInTable(this.node, id)) {
                     if (assignment.value.toString().equals("ArrayAssignment")) {
-                        evaluateArrayDeclaration(assignment, id, isDeclaration);
+                        evaluateArrayDeclaration(assignment, node.getLefterSon(), isDeclaration);
                     } else if (assignment.value.toString().equals("Call")) {
                         if (this.evaluateCall(assignment, this.type, isDeclaration)) {
-                            this.getTableFromNode(this.node).list.add(new Row(id, this.type));
+                            this.temporalRow = new Row(id, this.type);
+                            size = this.getTypeSize(this.type);
+                            this.offset += size;
+                            this.temporalRow.offset = this.offset;
+                            this.getTableFromNode(this.node).list.add(temporalRow);
+                            node.getLefterSon().tableID = this.getTableFromNode(this.node).blockID;
                         } else {
                             this.hasSemanticErrors = true;
                             System.out.println("Error semantico en linea: " + line + ", columna: " + column + ". "
@@ -630,7 +701,12 @@ public class Tree extends javax.swing.JFrame {
                     } else {
                         type = this.getNodeType(assignment);
                         if (this.type.equals(type)) {
-                            this.getTableFromNode(this.node).list.add(new Row(id, this.type));
+                            this.temporalRow = new Row(id, this.type);
+                            size = this.getTypeSize(this.type);
+                            this.offset += size;
+                            this.temporalRow.offset = this.offset;
+                            this.getTableFromNode(this.node).list.add(this.temporalRow);
+                            node.getLefterSon().tableID = this.getTableFromNode(this.node).blockID;
                         } else {
                             this.hasSemanticErrors = true;
                             System.out.println("Error semantico en linea: " + line + ", columna: " + column + ". "
@@ -646,14 +722,19 @@ public class Tree extends javax.swing.JFrame {
             }
         } else {
             if (this.existInTable(this.node, id)) {
+                int num = this.currentID;
                 this.type = this.getTypeById(this.node, id);
                 if (assignment.value.toString().equals("ArrayAssignment")) {
-                    evaluateArrayDeclaration(assignment, id, isDeclaration);
+                    this.hasSemanticErrors = true;
+                    System.out.println("Error semantico en linea: " + line + ", columna: " + column + ". "
+                            + " Variable " + id + " no puede reasignarse");
                 } else if (assignment.value.toString().equals("Call")) {
                     if (!this.evaluateCall(assignment, this.type, true)) {
                         this.hasSemanticErrors = true;
                         System.out.println("Error semantico en linea: " + line + ", columna: " + column + ". "
                                 + " Variable " + id + " es de tipo " + this.type);
+                    } else {
+                        node.getLefterSon().tableID = num;
                     }
                 } else {
                     type = this.getNodeType(assignment);
@@ -661,6 +742,8 @@ public class Tree extends javax.swing.JFrame {
                         this.hasSemanticErrors = true;
                         System.out.println("Error semantico en linea: " + line + ", columna: " + column + ". "
                                 + " Variable " + id + " es de tipo " + this.type);
+                    } else {
+                        node.getLefterSon().tableID = this.currentID;
                     }
                 }
             } else {
@@ -678,9 +761,11 @@ public class Tree extends javax.swing.JFrame {
         TreeNode assignment = node.getHijos().get(2);
 
         if (this.existInTable(this.node, name)) {
+            int current = this.currentID;
             type = this.getTypeById(this.node, name);
             type = this.getArrayType(type);
             node.getLefterSon().tag = type;
+            node.getLefterSon().tableID = current;
             this.isInteger = true;
             this.evaluateIntegers(null, node.getHijos().get(1));
 
@@ -711,7 +796,8 @@ public class Tree extends javax.swing.JFrame {
         }
     }
 
-    public void evaluateArrayDeclaration(TreeNode node, String id, boolean isDeclaration) {
+    public void evaluateArrayDeclaration(TreeNode node, TreeNode node2, boolean isDeclaration) {
+        String id = node2.getValue().toString();
         String type = this.type;
         String size = "";
         line = node.line;
@@ -727,9 +813,16 @@ public class Tree extends javax.swing.JFrame {
                         node = node.getLefterSon();
                     }
                     size = node.value.toString();
+                    int mySize = Integer.parseInt(size);
+                    int typeSize = this.getTypeSize(this.type);
+                    mySize *= typeSize;
                     this.type = this.getArrayType(this.type, size);
                     if (isDeclaration) {
+                        this.offset += mySize;
                         this.getTableFromNode(this.node).list.add(new Row(id, this.type));
+                        this.getTableFromNode(this.node).list
+                                .get(this.getTableFromNode(this.node).list.size() - 1).offset = this.offset;
+                        node2.tableID = this.getTableFromNode(this.node).blockID;
                     } else {
                         this.getRowById(this.node, id).setType(this.type);
                     }
@@ -761,6 +854,7 @@ public class Tree extends javax.swing.JFrame {
                 this.type = this.getArrayType(this.type, size);
                 if (isDeclaration) {
                     this.getTableFromNode(this.node).list.add(new Row(id, this.type));
+                    node2.tableID = this.getTableFromNode(this.node).blockID;
                 } else {
                     this.getRowById(this.node, id).setType(this.type);
                 }
@@ -778,8 +872,10 @@ public class Tree extends javax.swing.JFrame {
                     String id = node.getLefterSon().value.toString();
                     if (this.existInTable(this.node, id)) {
                         if (!this.getTypeById(this.node, id).equals("int")) {
-                            System.out.println("Soy malo");
                             this.isInteger = false;
+                        } else {
+                            node.tableID = this.currentID;
+                            node.getLefterSon().tableID = this.currentID;
                         }
                     } else {
                         this.isInteger = false;
@@ -816,6 +912,7 @@ public class Tree extends javax.swing.JFrame {
 
         if (this.existInTable(this.node, id)) {
             type = this.getTypeById(this.node, id);
+            node.getHijos().get(0).tableID = this.currentID;
             if (type.contains("Array")) {
                 type = this.getArrayType(type);
                 this.isInteger = true;
@@ -936,6 +1033,7 @@ public class Tree extends javax.swing.JFrame {
                     }
                 } else {
                     word += this.getNodeType(((TreeNode) node.getHijos().get(1)).getHijos().get(i));
+                    ((TreeNode) node.getHijos().get(1)).getHijos().get(i).tableID = this.currentID;
                 }
 
                 if (i < size - 1) {
@@ -965,6 +1063,7 @@ public class Tree extends javax.swing.JFrame {
                         word = "char";
                     }
                 }
+                node.tableID = this.currentID;
             } else {
                 this.hasSemanticErrors = true;
                 System.out.println("Error semantico en linea: " + line + ", columna: " + column + ". "
@@ -978,18 +1077,12 @@ public class Tree extends javax.swing.JFrame {
             word = node.value.toString();
         } else if (node.value.toString().equals("string")) {
             String value = node.getLefterSon().value.toString();
-            if (type.equals("char")) {
-                if (value.length() == 1) {
-                    word = "char";
-                } else {
-                    word = "intf";
-                }
-            }
 
-            if (type.equals("string")) {
+            if (value.length() == 1) {
+                word = "char";
+            } else {
                 word = "string";
             }
-
         } else if (node.value.toString().equals("add") || node.value.toString().equals("sub")
                 || node.value.toString().equals("mult") || node.value.toString().equals("div")
                 || node.value.toString().equals("mod") || node.value.toString().equals("()")) {
@@ -1068,6 +1161,7 @@ public class Tree extends javax.swing.JFrame {
         while (node.getParent() != null) {
             for (int i = 0; i < this.getTableFromNode(node).list.size(); i++) {
                 if (value.equals(this.getTableFromNode(node).list.get(i).id)) {
+                    this.currentID = this.getTableFromNode(node).blockID;
                     return true;
                 }
             }
@@ -1166,12 +1260,20 @@ public class Tree extends javax.swing.JFrame {
 
     public void generateFunctionICode(TreeNode node) {
         String name = "";
+        TreeNode params = new TreeNode();
+
         if (node.value.equals("Functions")) {
             name = node.getLefterSon().getLefterSon().value.toString();
-            this.cuadruplos.list.add(new RowIntermediate("F_ETIQ", name, "", ""));
+            params = node.getLefterSon().hijos.get(2);
+            this.cuadruplos.list.add(new RowIntermediate("F_ETIQ2", this.currentF_ETIQ, "", ""));
+            this.cuadruplos.list.add(new RowIntermediate("F_ETIQ", name, params.hijos.size() + "", ""));
+            this.currentF_ETIQ = name;
         } else if (node.value.equals("function")) {
             name = node.getLefterSon().value.toString();
-            this.cuadruplos.list.add(new RowIntermediate("F_ETIQ", name, "", ""));
+            params = node.getHijos().get(2);
+            this.cuadruplos.list.add(new RowIntermediate("F_ETIQ2", this.currentF_ETIQ, "", ""));
+            this.cuadruplos.list.add(new RowIntermediate("F_ETIQ", name, params.hijos.size() + "", ""));
+            this.currentF_ETIQ = name;
         }
     }
 
@@ -1180,6 +1282,7 @@ public class Tree extends javax.swing.JFrame {
                 || node.value.toString().equals("boolean") || node.value.toString().equals("string")) {
             if (node.hijos.size() > 0) {
                 node.tag = node.getLefterSon().value.toString();
+                //node.tableID = node.getLefterSon().tableID;
             }
         } else if (node.value.toString().equals("()")) {
             node.tag = node.getLefterSon().tag;
@@ -1202,6 +1305,9 @@ public class Tree extends javax.swing.JFrame {
         } else if (node.value.toString().equals("Equal") || node.value.toString().equals("GreaterEqual")
                 || node.value.toString().equals("LessThan") || node.value.toString().equals("LessEqual")
                 || node.value.toString().equals("GreaterThan") || node.value.toString().equals("Different")) {
+            int num1 = node.getLefterSon().tableID;
+            int num2 = node.getLefterSon().getRightBrother().tableID;
+            node.tableID = this.getGreater(num1, num2);
             this.generateBooleanExpressionICode(node);
             if (node.hasRightBrother()) {
                 if (node.getRightBrother().hasRightBrother()) {
@@ -1227,6 +1333,9 @@ public class Tree extends javax.swing.JFrame {
         } else if (node.value.toString().equals("Else")) {
             //*****************************************************
         } else if (node.value.toString().equals("AND") || node.value.toString().equals("OR")) {
+            int num1 = node.getLefterSon().tableID;
+            int num2 = node.getLefterSon().getRightBrother().tableID;
+            node.tableID = this.getGreater(num1, num2);
             this.generateAndICode(node);
             if (node.hasRightBrother()) {
                 if (node.getRightBrother().hasRightBrother()) {
@@ -1264,23 +1373,75 @@ public class Tree extends javax.swing.JFrame {
         } else if (node.value.toString().equals("ElseCondition")) {
             this.cuadruplos.list.add(new RowIntermediate("GOTO", node.parent.parent.siguiente, "", ""));
             this.cuadruplos.list.add(new RowIntermediate("ETIQ", node.parent.falsa, "", ""));
-        }else if(node.value.toString().equals("FunctionParams")){
-            node.tag = node.hijos.size()+"";
+        } else if (node.value.toString().equals("FunctionParams")) {
+            node.tag = node.hijos.size() + "";
+            String type = "", value = "";
             for (int i = 0; i < node.hijos.size(); i++) {
-                this.cuadruplos.list.add(new RowIntermediate("param",node.hijos.get(i).tag,"",""));
+                value = node.hijos.get(i).tag;
+                type = node.hijos.get(i).value.toString();
+                if (type.equals("string")) {
+                    if (value.length() == 1) {
+                        type = "char";
+                    }
+                }
+                this.cuadruplos.list.add(new RowIntermediate("param", value, type, ""));
+                this.cuadruplos.list.get(this.cuadruplos.list.size() - 1).table = node.hijos.get(i).tableID;
             }
-        }else if(node.value.toString().equals("Call")){
+        } else if (node.value.toString().equals("Call")) {
             node.tag = this.cuadruplos.tempNuevo();
             String name = node.getLefterSon().value.toString();
             String params = node.getLefterSon().getRightBrother().tag;
-            this.cuadruplos.list.add(new RowIntermediate("call",name,params,node.tag));
+            this.cuadruplos.list.add(new RowIntermediate("call", name, params, node.tag));
+        } else if (node.value.toString().equals("Return")) {
+            String value = node.getLefterSon().tag;
+            String type = node.getLefterSon().value.toString();
+            if (type.equals("string")) {
+                if (value.length() == 1) {
+                    type = "char";
+                }
+            }
+            this.cuadruplos.list.add(new RowIntermediate("RETURN", value, type, ""));
+            this.cuadruplos.list.get(this.cuadruplos.list.size() - 1).table = node.getLefterSon().tableID;
+        } else if (node.value.toString().equals("Read")) {
+            String value = node.getLefterSon().value.toString();
+            int tableID = node.getLefterSon().tableID;
+            this.getTableByID(this.symbolTables.root, this.symbolTables.root.getLefterSon(), tableID);
+            String type = this.getTypeById(this.node, value);
+            this.cuadruplos.list.add(new RowIntermediate("READ", value, type, ""));
+            this.cuadruplos.list.get(this.cuadruplos.list.size() - 1).table = tableID;
+        } else if (node.value.toString().equals("Write")) {
+            String value = "";
+            String type = "";
+            int id = 0;
+
+            for (int i = 0; i < node.getHijos().size(); i++) {
+                id = 0;
+                id = node.getHijos().get(i).tableID;
+                value = node.getHijos().get(i).tag;
+                type = node.getHijos().get(i).value.toString();
+                if (type.equals("string")) {
+                    if (value.length() == 1) {
+                        type = "char";
+                    }
+                }
+                this.cuadruplos.list.add(new RowIntermediate("WRITE", value, type, ""));
+                this.cuadruplos.list.get(this.cuadruplos.list.size() - 1).table = id;
+            }
         }
     }
 
     public void generateMathICode(TreeNode node, String symbol) {
         String arg1 = node.getHijos().get(0).tag;
         String arg2 = node.getHijos().get(1).tag;
+        int table1 = node.getHijos().get(0).tableID;
+        int table2 = node.getHijos().get(1).tableID;
+        int table = 0;
 
+        if (table1 > table2) {
+            table = table1;
+        } else {
+            table = table2;
+        }
         if (this.isDigit(arg1) && this.isDigit(arg2)) {
             int num1 = Integer.parseInt(arg1);
             int num2 = Integer.parseInt(arg2);
@@ -1288,17 +1449,24 @@ public class Tree extends javax.swing.JFrame {
         } else {
             this.tag = this.cuadruplos.tempNuevo();
             this.cuadruplos.list.add(new RowIntermediate(symbol, arg1, arg2, this.tag));
+            this.cuadruplos.list.get(this.cuadruplos.list.size() - 1).table = table;
         }
         node.tag = this.tag;
     }
 
     public void generateAssignmentICode(TreeNode node, String symbol) {
         String assignment = node.getHijos().get(1).value.toString();
+        String type = "";
+
         if (!assignment.equals("ArrayAssignment")) {
             String arg1 = node.getHijos().get(1).tag;
+            int assignmentPosition = node.getHijos().get(1).tableID;
+            int myPosition = node.getLefterSon().tableID;
+            int tableID = this.getGreater(assignmentPosition, myPosition);
             this.tag = node.getLefterSon().value.toString();
             node.tag = this.tag;
-            this.cuadruplos.list.add(new RowIntermediate(symbol, arg1, "", this.tag));
+            this.cuadruplos.list.add(new RowIntermediate(symbol, arg1, assignment, this.tag));
+            this.cuadruplos.list.get(this.cuadruplos.list.size() - 1).table = tableID;
         }
     }
 
@@ -1308,16 +1476,21 @@ public class Tree extends javax.swing.JFrame {
         int typeSize = this.getTypeSize(type);
         String index = node.getHijos().get(1).tag;
         String temporal = "";
+        int nameIndex = node.getLefterSon().tableID;
+        int indexIndex = node.getHijos().get(1).tableID;
 
+        int index1 = this.getGreater(nameIndex, indexIndex);
         this.tag = this.cuadruplos.tempNuevo();
         if (isDigit(index)) {
             this.tag = this.returnValue(typeSize, Integer.parseInt(index), "*") + "";
         } else {
             this.cuadruplos.list.add(new RowIntermediate("*", typeSize + "", index, this.tag));
+            this.cuadruplos.list.get(this.cuadruplos.list.size() - 1).table = index1;
         }
 
         temporal = this.cuadruplos.tempNuevo();
         this.cuadruplos.list.add(new RowIntermediate("=[]", name, this.tag, temporal));
+        this.cuadruplos.list.get(this.cuadruplos.list.size() - 1).table = index1;
         node.tag = temporal;
     }
 
@@ -1328,14 +1501,22 @@ public class Tree extends javax.swing.JFrame {
         String name = node.getLefterSon().value.toString();
         String assignment = node.getHijos().get(2).tag;
 
+        int indexTable = node.getHijos().get(1).tableID;
+        int nameTable = node.getLefterSon().tableID;
+        int assignmentTable = node.getHijos().get(2).tableID;
+        int tableID = this.getGreater(indexTable, nameTable);
+        tableID = this.getGreater(tableID, assignmentTable);
+
         if (isDigit(index)) {
             this.tag = this.returnValue(typeSize, Integer.parseInt(index), "*") + "";
         } else {
             this.tag = this.cuadruplos.tempNuevo();
             this.cuadruplos.list.add(new RowIntermediate("*", typeSize + "", index, this.tag));
+            this.cuadruplos.list.get(this.cuadruplos.list.size() - 1).table = tableID;
         }
 
         this.cuadruplos.list.add(new RowIntermediate("[]=", this.tag, assignment, name));
+        this.cuadruplos.list.get(this.cuadruplos.list.size() - 1).table = tableID;
     }
 
     public void generateBooleanExpressionICode(TreeNode node) {
@@ -1372,7 +1553,8 @@ public class Tree extends javax.swing.JFrame {
             this.cuadruplos.list.add(new RowIntermediate("ETIQ", node.primero, "", ""));
         }
 
-        this.createIf(leftVal, rightVal, node.verdadera, node.falsa, symbol);
+        this.createIf(leftVal, rightVal, node.verdadera, node.falsa, symbol, node.getLefterSon(),
+                node.getLefterSon().getRightBrother());
         this.cuadruplos.list.add(new RowIntermediate("ETIQ", node.verdadera, "", ""));
     }
 
@@ -1398,7 +1580,8 @@ public class Tree extends javax.swing.JFrame {
 
             node.verdadera = this.cuadruplos.etiqNuevo();
             node.falsa = this.cuadruplos.etiqNuevo();
-            this.createIf(leftVal, rightVal, node.verdadera, node.falsa, symbol);
+            this.createIf(leftVal, rightVal, node.verdadera, node.falsa, symbol,
+                    node.getLefterSon(), node.getLefterSon().getRightBrother());
             if (node.parent.value.toString().equals("AND")) {
                 this.cuadruplos.list.add(new RowIntermediate("ETIQ", node.verdadera, "", ""));
             } else if (node.parent.value.toString().equals("OR")) {
@@ -1430,11 +1613,13 @@ public class Tree extends javax.swing.JFrame {
         if (!node.parent.value.toString().equals("AND") && !node.parent.value.toString().equals("OR")) {
             node.parent.siguiente = node.siguiente;
             node.parent.falsa = node.falsa;
-            this.createIf(leftVal, rightVal, node.verdadera, node.falsa, symbol);
+            this.createIf(leftVal, rightVal, node.verdadera, node.falsa, symbol,
+                    node.getLefterSon(), node.getLefterSon().getRightBrother());
             this.cuadruplos.list.add(new RowIntermediate("ETIQ", node.verdadera, "", ""));
         } else {
             if (node.parent.getLefterSon().equals(node)) {
-                this.createIf(leftVal, rightVal, node.verdadera, node.falsa, symbol);
+                this.createIf(leftVal, rightVal, node.verdadera, node.falsa, symbol,
+                        node.getLefterSon(), node.getLefterSon().getRightBrother());
                 if (node.parent.value.toString().equals("OR")) {
                     this.cuadruplos.list.add(new RowIntermediate("ETIQ", node.falsa, "", ""));
                 } else if (node.parent.value.toString().equals("AND")) {
@@ -1466,8 +1651,10 @@ public class Tree extends javax.swing.JFrame {
         node.siguiente = stepValue;
 
         this.cuadruplos.list.add(new RowIntermediate(":=", firstValue, "", variable));
+        this.cuadruplos.list.get(this.cuadruplos.list.size() - 1).table = node.getLefterSon().tableID;
         this.cuadruplos.list.add(new RowIntermediate("ETIQ", node.primero, "", ""));
-        this.createIf(variable, lastValue, node.verdadera, node.falsa, "<=");
+        this.createIf(variable, lastValue, node.verdadera, node.falsa, "<=",
+                node.getLefterSon(), node.getLefterSon().getRightBrother());
         this.cuadruplos.list.add(new RowIntermediate("ETIQ", node.verdadera, "", ""));
         node.verdadera = variable;
     }
@@ -1478,9 +1665,12 @@ public class Tree extends javax.swing.JFrame {
         node.siguiente = this.cuadruplos.tempNuevo();
         String variable = node.getLefterSon().verdadera;
         String stepValue = node.getLefterSon().siguiente;
+        int symbolId = node.getLefterSon().getLefterSon().tableID;
 
         this.cuadruplos.list.add(new RowIntermediate("+", variable, stepValue, node.siguiente));
+        this.cuadruplos.list.get(this.cuadruplos.list.size() - 1).table = symbolId;
         this.cuadruplos.list.add(new RowIntermediate(":=", node.siguiente, "", variable));
+        this.cuadruplos.list.get(this.cuadruplos.list.size() - 1).table = symbolId;
         this.cuadruplos.list.add(new RowIntermediate("GOTO", node.primero, "", ""));
         this.cuadruplos.list.add(new RowIntermediate("ETIQ", node.falsa, "", ""));
     }
@@ -1494,7 +1684,8 @@ public class Tree extends javax.swing.JFrame {
             node.verdadera = this.cuadruplos.etiqNuevo();
             node.falsa = this.cuadruplos.etiqNuevo();
 
-            this.createIf(node.tag, value, node.verdadera, node.falsa, "==");
+            this.createIf(node.tag, value, node.verdadera, node.falsa, "==",
+                    node.parent.parent.getHijos().get(myPosition - 1), node.getLefterSon());
             this.cuadruplos.list.add(new RowIntermediate("ETIQ", node.verdadera, "", ""));
         } else {
             node.falsa = node.parent.parent.siguiente;
@@ -1502,11 +1693,34 @@ public class Tree extends javax.swing.JFrame {
 
     }
 
-    public void createIf(String left, String right, String verdadero, String falso, String symbol) {
+    public void createIf(String left, String right, String verdadero, String falso, String symbol,
+        TreeNode leftNode, TreeNode rightNode) {
+        int leftVal = leftNode.tableID;
+        int rightVal = rightNode.tableID;
+        int val = this.getGreater(leftVal, rightVal);
+
+        if (leftNode.value.toString().equals("string")) {
+            left = "\'" + left + "\'";
+        }
+
+        if (rightNode.value.toString().equals("string")) {
+            right = "\'" + right + "\'";
+        }
+        System.out.println("Left: " + leftNode.value);
+        System.out.println("Right: " + rightNode.value);
         this.cuadruplos.list.add(new RowIntermediate("if " + symbol, left, right, verdadero));
+        this.cuadruplos.list.get(this.cuadruplos.list.size() - 1).table = val;
         this.cuadruplos.list.add(new RowIntermediate("GOTO", falso, "", ""));
     }
 
+    public boolean isAndOrOr(TreeNode node){
+        if(node.value.toString().equals("LessEqual") || node.value.toString().equals("GreaterEqual") || 
+                node.value.toString().equals("Different") || node.value.toString().equals("Equal") || 
+                node.value.toString().equals("LessThan") || node.value.toString().equals("GreaterThan")){
+            return true;
+        }
+        return false;
+    }
     public TreeNode getParentNode(TreeNode node) {
         while (node.value.toString().equals("AND") || node.value.toString().equals("OR")
                 || node.value.toString().equals("GreaterThan") || node.value.toString().equals("LessThan")
@@ -1541,10 +1755,13 @@ public class Tree extends javax.swing.JFrame {
         if (type.equals("int")) {
             return 4;
         } else if (type.equals("boolean")) {
-            return 1;
+            return 4;
         } else if (type.equals("char")) {
-            return 1;
+            return 4;
+        } else if (type.equals("stirng")) {
+            return -2;
         }
+
         return -1;
     }
 
@@ -1561,6 +1778,13 @@ public class Tree extends javax.swing.JFrame {
             }
         }
         return true;
+    }
+
+    public int getGreater(int a, int b) {
+        if (a > b) {
+            return a;
+        }
+        return b;
     }
 
     public String getRelationalOperator(String type) {
@@ -1601,11 +1825,632 @@ public class Tree extends javax.swing.JFrame {
         this.jDialog1.setVisible(true);
     }
 
+    public void getTableByID(TreeNode parent, TreeNode node, int id) {
+
+        if (this.getTableFromNode(node).blockID == id) {
+            this.node = node;
+        }
+
+        if (node.isParent()) {
+            getTableByID(node, node.getLefterSon(), id);
+        }
+
+        if (node.hasRightBrother()) {
+            getTableByID(parent, node.getRightBrother(), id);
+        }
+    }
+
+    //***********************************************************************************************
+    public void generateFinalCode() {
+        RowIntermediate row = new RowIntermediate();
+        this.data += "_nextLine: .asciiz \"\\n\"\n";
+        this.body += "move $fp,$sp\n";
+        this.body += "jal _main\n";
+
+        for (int i = 0; i < this.cuadruplos.list.size(); i++) {
+            row = this.cuadruplos.list.get(i);
+            if (row.operator.equals("F_ETIQ")) {
+                this.generateF_ETIQFinalCode(row.arg1, row.arg2);
+            } else if (row.operator.equals(":=")) {
+                this.generateAssignmentFinalCode(row.arg1, row.arg2, row.result, row.table);
+            } else if (row.operator.equals("WRITE")) {
+                this.generateWriteFinalCode(row.arg1, row.arg2, row.table);
+            } else if (row.operator.equals("+") || row.operator.equals("-")
+                    || row.operator.equals("*") || row.operator.equals("/")) {
+                this.generateAdditionFinalCode(row.arg1, row.arg2, row.result, row.table, row.operator);
+            } else if (row.operator.equals("if ==")) {
+                this.generateComparisonFinalCode(row.arg1, row.arg2, row.result, row.table, "==");
+            } else if (row.operator.equals("if !=")) {
+                this.generateComparisonFinalCode(row.arg1, row.arg2, row.result, row.table, "!=");
+            } else if (row.operator.equals("if >=")) {
+                this.generateComparisonFinalCode(row.arg1, row.arg2, row.result, row.table, ">=");
+            } else if (row.operator.equals("if <=")) {
+                this.generateComparisonFinalCode(row.arg1, row.arg2, row.result, row.table, "<=");
+            } else if (row.operator.equals("if >")) {
+                this.generateComparisonFinalCode(row.arg1, row.arg2, row.result, row.table, ">");
+            } else if (row.operator.equals("if <")) {
+                this.generateComparisonFinalCode(row.arg1, row.arg2, row.result, row.table, "<");
+            } else if (row.operator.equals("GOTO")) {
+                this.body += "b _" + row.arg1 + "\n";
+            } else if (row.operator.equals("ETIQ")) {
+                this.body += "_" + row.arg1 + ":\n";
+            } else if (row.operator.equals("READ")) {
+                this.generateReadFinalCode(row.arg1, row.arg2, row.table);
+            } else if (row.operator.equals("param")) {
+                this.generateParamFinalCode(row.arg1, row.arg2, row.table);
+            } else if (row.operator.equals("call")) {
+                this.generateCallFinalCode(row.arg1, row.result);
+            } else if (row.operator.equals("F_ETIQ2")) {
+                this.generateF_ETIQ2FinalCode(row.arg1);
+            } else if (row.operator.equals("RETURN")) {
+                this.generateReturnFinalCode(row.arg1, row.arg2, row.table);
+            } else if (row.operator.equals("[]=")) {
+                this.assignToArrayFinalCode(row.result, row.arg1, row.arg2, row.table);
+            } else if (row.operator.equals("=[]")) {
+                this.assignArrayToFinalCode(row.result, row.arg1, row.arg2, row.table);
+            }
+        }
+
+        System.out.println(this.body + this.data);
+    }
+
+    public void assignArrayToFinalCode(String temp, String arr, String index, int tableRef) {
+        int pos = this.getPositionInStack(arr, tableRef);
+        String type = this.temporalRow.type;
+
+        if (this.isDigit(index)) {
+            this.body += "li $t8, " + index + "\n";
+            this.body += "add $t9,$t8," + pos + "\n";
+        } else if (this.isTemporal(index)) {
+            this.body += "add $t9,$" + index + "," + pos + "\n";
+        }
+
+        this.body += "move $sp,$fp\n";
+        this.body += "add $fp,$fp,$t9\n";
+        if (type.contains("int")) {
+            this.body += "lw $" + temp + ",($fp)\n";
+        } else if (type.contains("char") || type.contains("boolean")) {
+            this.body += "lb $" + temp + ",($fp)\n";
+        }
+        this.body += "lw $fp,-4($sp)\n";
+    }
+
+    public void assignToArrayFinalCode(String arr, String index, String value, int tableRef) {
+        int pos = this.getPositionInStack(arr, tableRef);
+        String type2 = this.temporalRow.type;
+        if (this.isDigit(index)) {
+            this.body += "li $t8, " + index + "\n";
+            this.body += "add $t9,$t8," + pos + "\n";
+        } else if (this.isTemporal(index)) {
+            this.body += "add $t9,$" + index + "," + pos + "\n";
+        }
+        this.body += "move $sp,$fp\n";
+        if (this.isDigit(value)) {
+            this.body += "add $fp,$fp,$t9\n";
+            this.body += "li $t8," + value + "\n";
+            this.body += "sw $t8,($fp)\n";
+        } else if (this.isTemporal(value)) {
+            this.body += "add $fp,$fp,$t9\n";
+            if (type2.contains("int")) {
+                this.body += "sw $" + value + ",($fp)\n";
+            } else if (type2.contains("char") || type2.contains("boolean")) {
+                this.body += "sb $" + value + ",($fp)\n";
+            }
+        } else {
+            int pos2 = this.getPositionInStack(value, tableRef);
+            String type = this.temporalRow.type;
+
+            if (type.equals("int")) {
+                this.body += "lw $t8," + pos2 + "($fp)\n";
+            } else if (type.equals("char") || type.equals("boolean")) {
+                this.body += "lb $t8," + pos2 + "($fp)\n";
+            }
+            this.body += "add $fp,$fp,$t9\n";
+            this.body += "sw $t8,($fp)\n";
+        }
+        this.body += "lw $fp,-4($sp)\n";
+    }
+
+    public void generateReturnFinalCode(String arg1, String arg2, int tableRef) {
+        if (arg2.equals("variable")) {
+            int stackPos = this.getPositionInStack(arg1, tableRef);
+            String type = this.temporalRow.type;
+
+            if (type.equals("int")) {
+                this.body += "lw $v0," + stackPos + "($fp)\n";
+            this.body += "b _" + this.currentFunction + "Salida" + "\n";
+            } else if (type.equals("boolean")) {
+                this.body += "lb $v0," + stackPos + "($fp)\n";
+            this.body += "b _" + this.currentFunction + "Salida" + "\n";
+            } else if (type.equals("char")) {
+                this.body += "lb $v0," + stackPos + "($fp)\n";
+            this.body += "b _" + this.currentFunction + "Salida" + "\n";
+            }
+        } else if (arg2.equals("Number")) {
+            this.body += "li $v0," + arg1 + "\n";
+            this.body += "b _" + this.currentFunction + "Salida" + "\n";
+        } else if (arg2.equals("boolean")) {
+            arg1 = this.booleanToByte(arg1) + "";
+            this.body += "li $v0," + arg1 + "\n";
+            this.body += "b _" + this.currentFunction + "Salida" + "\n";
+        } else if (arg2.equals("char")) {
+            this.body += "li $v0,\'" + arg1 + "\'\n";
+            this.body += "b _" + this.currentFunction + "Salida" + "\n";
+        } else if (arg2.equals("add") || arg2.equals("sub") || arg2.equals("mult") || arg2.equals("div")
+                || arg2.equals("()")) {
+            this.body += "move $v0,$" + arg1 + "\n";
+            this.body += "b _" + this.currentFunction + "Salida" + "\n";
+        } else if (this.isTemporal(arg1)) {
+            this.body += "move $v0,$" + arg1 + "\n";
+            this.body += "b _" + this.currentFunction + "Salida" + "\n";
+        }
+    }
+
+    public void generateCallFinalCode(String name, String temp) {
+        int pos = this.getPositionInStack(name, 0);
+        String type = this.temporalRow.type;
+        type = this.getFunctionReturnType(type);
+
+        this.body += "add $sp,$sp," + (this.lastOffset) + "\n";
+        this.body += "jal _" + name + "\n";
+        this.body += "move $sp,$fp\n";
+        if (type.equals("int")) {
+            this.body += "move $" + temp + ",$v0\n";
+        } else if (type.equals("char")) {
+            this.body += "move $" + temp + ",$v0\n";
+        } else if (type.equals("boolean")) {
+            this.body += "move $" + temp + ",$v0\n";
+        }
+
+        this.paramCounter = 0;
+    }
+
+    public void generateParamFinalCode(String arg1, String arg2, int tableRef) {
+        if (this.paramCounter < 4) {
+            if (arg2.equals("variable")) {
+                int pos = this.getPositionInStack(arg1, tableRef);
+                String type = this.temporalRow.type;
+
+                if (type.equals("int")) {
+                    this.body += "lw $a" + this.paramCounter + "," + pos + "($fp)\n";
+                    this.paramCounter++;
+                } else if (type.equals("char")) {
+                    this.body += "lb $a" + this.paramCounter + "," + pos + "($fp)\n";
+                    this.paramCounter++;
+                } else if (type.equals("boolean")) {
+                    this.body += "lb $a" + this.paramCounter + "," + pos + "($fp)\n";
+                    this.paramCounter++;
+                }
+            } else if (arg2.equals("Number")) {
+                this.body += "li $a" + this.paramCounter + "," + arg1 + "\n";
+                this.paramCounter++;
+            } else if (arg2.equals("boolean")) {
+                arg1 = this.booleanToByte(arg1) + "";
+                this.body += "li $a" + this.paramCounter + "," + arg1 + "\n";
+                this.paramCounter++;
+            } else if (arg2.equals("char")) {
+                this.body += "li $a" + this.paramCounter + ",\'" + arg1 + "\'\n";
+                this.paramCounter++;
+            } else if (arg2.equals("add") || arg2.equals("sub") || arg2.equals("mult") || arg2.equals("div")
+                    || arg2.equals("()")) {
+                this.body += "move $a" + this.paramCounter + ",$" + arg1 + "\n";
+                this.paramCounter++;
+            } else if (this.isTemporal(arg1)) {
+                this.body += "move $a" + this.paramCounter + ",$" + arg1 + "\n";
+                this.paramCounter++;
+            }
+        }
+    }
+
+    public void generateReadFinalCode(String arg1, String type, int tableRef) {
+        int stackPosition = this.getPositionInStack(arg1, tableRef);
+
+        if (type.equals("int")) {
+            this.body += "li $v0,5\n";
+            this.body += "syscall\n";
+            this.body += "sw $v0," + stackPosition + "($fp)\n";
+        } else if (type.equals("char")) {
+            this.body += "li $v0,12\n";
+            this.body += "syscall\n";
+            this.body += "sb $v0," + stackPosition + "($fp)\n";
+        }
+    }
+
+    public void generateComparisonFinalCode(String arg1, String arg2, String etiq, int tableRef, String symbol) {
+        arg1 = this.getFinalValue("$t9", arg1, tableRef);
+        arg2 = this.getFinalValue("$t8", arg2, tableRef);
+
+        if (symbol.equals("==")) {
+            this.body += "beq " + arg1 + "," + arg2 + ",_" + etiq + "\n";
+        } else if (symbol.equals("!=")) {
+            this.body += "bne " + arg1 + "," + arg2 + ",_" + etiq + "\n";
+        } else if (symbol.equals(">=")) {
+            this.body += "bge " + arg1 + "," + arg2 + ",_" + etiq + "\n";
+        } else if (symbol.equals("<=")) {
+            this.body += "ble " + arg1 + "," + arg2 + ",_" + etiq + "\n";
+        } else if (symbol.equals(">")) {
+            this.body += "bgt " + arg1 + "," + arg2 + ",_" + etiq + "\n";
+        } else if (symbol.equals("<")) {
+            this.body += "blt " + arg1 + "," + arg2 + ",_" + etiq + "\n";
+        }
+    }
+
+    public void generateAdditionFinalCode(String arg1, String arg2, String temporal, int tableRef, String symbol) {
+        int stackPos = 0;
+        String word1 = this.getMathValue("$t9", arg1, tableRef);
+        String word2 = this.getMathValue("$t8", arg2, tableRef);;
+        temporal = "$" + temporal;
+
+        if (symbol.equals("+")) {
+            this.body += "add " + temporal + "," + word1 + "," + word2 + "\n";
+        } else if (symbol.equals("-")) {
+            this.body += "sub " + temporal + "," + word1 + "," + word2 + "\n";
+        } else if (symbol.equals("*")) {
+            this.body += "mul " + temporal + "," + word1 + "," + word2 + "\n";
+        } else if (symbol.equals("/")) {
+            this.body += "div " + temporal + "," + word1 + "," + word2 + "\n";
+        }
+    }
+
+    public int setOffset(int offset, int newOffset) {
+        if (newOffset < offset) {
+            return newOffset;
+        }
+        return offset;
+    }
+
+    public int setLastOffset(int current, int newOffset) {
+        if(newOffset > current){
+            return newOffset;
+        }
+        return current;
+    }
+
+    public String getFinalValue(String temp, String word, int tableRef) {
+        int pos = this.getPositionInStack(word, tableRef);
+        String type = this.temporalRow.type;
+        System.out.println("MiType: " + type);
+        System.out.println("Word: " + word);
+        System.out.println("Table: " + tableRef);
+        if (type.equals("int")) {
+            return this.getMathValue(temp, word, tableRef);
+        } else if (type.equals("char")) {
+            return this.getCharValue(temp, word, tableRef);
+        } else if (type.equals("boolean")) {
+            return this.getCharValue(temp, word, tableRef);
+        } else if (type.equals("null")) {
+            if (this.isDigit(word)) {
+                return word;
+            } else if (word.contains("'")) {
+                return word;
+            } else if (this.isTemporal(word)) {
+                return "$" + word;
+            } else if (word.equals("true") || word.equals("false")) {
+                return this.booleanToByte(word) + "";
+            }
+        }
+        return "null";
+    }
+
+    public String getCharValue(String temporal, String value, int tableRef) {
+        if (this.isTemporal(value)) {
+            this.body += " move " + temporal + ",$" + value + "\n";
+            return temporal;
+        } else {
+            int stackPos = this.getPositionInStack(value, tableRef);
+            this.body += "lb " + temporal + "," + stackPos + "($fp)\n";
+            return temporal;
+        }
+
+    }
+
+    public String getMathValue(String temporal, String value, int tableRef) {
+        if (this.isDigit(value)) {
+            this.body += "li " + temporal + "," + value + "\n";
+            return temporal;
+        } else if (this.isTemporal(value)) {
+            this.body += " move " + temporal + ",$" + value + "\n";
+            return temporal;
+        } else {
+            int stackPos = this.getPositionInStack(value, tableRef);
+            System.out.println(value + " ************* " + stackPos);
+            this.body += "lw " + temporal + "," + stackPos + "($fp)\n";
+            return temporal;
+        }
+
+    }
+
+    public void generateWriteFinalCode(String arg1, String type, int tableId) {
+        int stackPos = this.getPositionInStack(arg1, tableId);
+        if (type.equals("variable")) {
+            type = this.temporalRow.type;
+            if (type.equals("int")) {
+                this.body += "li $v0,1\n";
+                this.body += "lw $a0," + stackPos + "($fp)\n";
+                this.body += "syscall\n";
+            } else if (type.equals("char")) {
+                this.body += "li $v0,11\n";
+                this.body += "lb $a0," + stackPos + "($fp)\n";
+                this.body += "syscall\n";
+            } else if (type.equals("boolean")) {
+                this.body += "li $v0,11\n";
+                this.body += "lb $a0," + stackPos + "($fp)\n";
+                this.body += "syscall\n";
+            }
+        } else if (type.equals("Number")) {
+            this.body += "li $v0,1\n";
+            this.body += "li $a0," + arg1 + "\n";
+            this.body += "syscall\n";
+        } else if (type.equals("char")) {
+            this.body += "li $v0,11\n";
+            this.body += "li $a0,\'" + arg1 + "\'\n";
+            this.body += "syscall\n";
+        } else if (type.equals("boolean")) {
+            arg1 = this.booleanToByte(arg1) + "";
+            this.body += "li $v0,11\n";
+            this.body += "li $a0,\'" + arg1 + "\'\n";
+            this.body += "syscall\n";
+        } else if (type.equals("string")) {
+            this.data += "_msg" + this.stringCounter + ": .asciiz \"" + arg1 + "\"\n";
+            this.body += "li $v0, 4\n";
+            this.body += "la $a0," + "_msg" + this.stringCounter + "\n";
+            this.body += "syscall\n";
+            this.stringCounter++;
+        } else if (type.equals("ArrayElement")) {
+            this.body += "li $v0,1\n";
+            this.body += "move $a0,$" + arg1 + "\n";
+            this.body += "syscall\n";
+        }
+
+        this.generateNextLine();
+    }
+
+    public boolean isTemporal(String word) {
+        String compare = "$t1$t2$t3$t4$t5$t6$t7$t8$t9";
+
+        if (compare.contains(word)) {
+            return true;
+        }
+        return false;
+    }
+
+    public void generateNextLine() {
+        this.body += "li $v0,4\n";
+        this.body += "la $a0,_nextLine\n";
+        this.body += "syscall\n";
+    }
+
+    public void generateF_ETIQ2FinalCode(String arg1) {
+        if (arg1.equals("main")) {
+            this.body += "_" + arg1+"Salida" + ":\n";
+            this.body += "move $sp,$fp\n";
+            this.body += "lw $ra, -8($sp)\n";
+            this.body += "lw $fp, -4($sp)\n";
+            this.body += "jr $ra\n";
+        } else {
+            int pos = this.getPositionInStack(arg1, 0);
+            String type = this.temporalRow.type;
+            this.body += "_" + arg1+"Salida" + ":\n";
+            this.body += "move $sp,$fp\n";
+            this.body += "lw $fp, -4($sp)\n";
+            this.body += "lw $ra, -8($sp)\n";
+            this.loadParameters(amount, type, false);
+            this.body += "jr $ra\n";
+        }
+    }
+
+    public void generateF_ETIQFinalCode(String arg1, String arg2) {
+        amount = Integer.parseInt(arg2);
+        this.currentBegin = 0;
+        this.currentFunction = arg1;
+        if (arg1.equals("main")) {
+            this.body += "li $v0,10\n";
+            this.body += "syscall\n";
+            this.body += "_" + arg1 + ":\n";
+            this.body += "sw $fp, -4($sp)\n";
+            this.body += "sw $ra, -8($sp)\n";
+            this.body += "move $fp,$sp\n";
+        } else {
+            int pos = this.getPositionInStack(arg1, 0);
+            String type = this.temporalRow.type;
+            this.body += "_" + arg1 + ":\n";
+            this.body += "sw $fp, -4($sp)\n";
+            this.body += "sw $ra, -8($sp)\n";
+            this.loadParameters(amount, type, true);
+            this.body += "move $fp,$sp\n";
+        }
+    }
+
+    public void loadParameters(int amount, String type, boolean begin) {
+        String[] arr = type.split("->");
+        String[] params = arr[0].split("x");
+        int offset = 0;
+        int size = 0;
+
+        for (int i = 0; i < amount; i++) {
+            params[i] = params[i].replaceAll(" ", "");
+            size = this.getTypeSize(params[i]);
+            if (params[i].equals("int")) {
+                if (begin) {
+                    this.body += "move $s" + i + ",$a" + i + "\n";
+                    this.body += "sw $s" + i + ",-" + (12 + offset) + "($sp)\n";
+                    this.lastOffset = (12 + offset) * -1;
+                    this.currentBegin += size;
+                } else {
+                    this.body += "lw $s" + i + ",-" + (12 + offset) + "($sp)\n";
+                }
+            } else if (params[i].equals("boolean")) {
+                if (begin) {
+                    this.body += "move $s" + i + ",$a" + i + "\n";
+                    this.body += "sb $s" + i + ",-" + (12 + offset) + "($sp)\n";
+                    this.lastOffset = (12 + offset) * -1;
+                    this.currentBegin += size;
+                } else {
+                    this.body += "lb $s" + i + ",-" + (12 + offset) + "($sp)\n";
+                }
+            } else if (params[i].equals("char")) {
+                if (begin) {
+                    this.body += "move $s" + i + ",$a" + i + "\n";
+                    this.body += "sb $s" + i + ",-" + (12 + offset) + "($sp)\n";
+                    this.lastOffset = (12 + offset) * -1;
+                    this.currentBegin += size;
+                } else {
+                    this.body += "lb $s" + i + ",-" + (12 + offset) + "($sp)\n";
+                }
+            }
+            offset += size;
+        }
+    }
+
+    public void generateAssignmentFinalCode(String arg1, String arg2, String temporal, int tableRef) {
+        int stackPos1 = this.getPositionInStack(temporal, tableRef);
+        String type = this.temporalRow.type;
+
+        if (type.contains("->")) {
+            type = this.getFunctionReturnType(type);
+        }
+
+        if (type.equals("int")) {
+            if (this.isDigit(arg1)) {
+                this.body += "li $t9," + arg1 + "\n";
+                this.body += "sw $t9," + stackPos1 + "($fp)\n";
+                this.lastVariableSize = 4;
+                this.lastOffset = stackPos1;
+            } else if (this.isTemporal(arg1)) {
+                this.body += "sw $" + arg1 + ", " + stackPos1 + "($fp)" + "\n";
+                this.lastVariableSize = 4;
+                this.lastOffset = stackPos1;
+            } else {
+                int stackPos2 = this.getPositionInStack(arg1, tableRef);
+                this.body += "lw $t9," + stackPos2 + "($fp)" + "\n";
+                this.body += "sw " + "$t9," + stackPos1 + "($fp)" + "\n";
+                this.lastVariableSize = 4;
+                this.lastOffset = stackPos1;
+            }
+        } else if (type.equals("char")) {
+            if (arg2.equals("string")) {
+                this.body += "li $t9," + "\'" + arg1 + "\'" + "\n";
+                this.body += "sb $t9," + stackPos1 + "($fp)\n";
+                this.lastVariableSize = 1;
+                this.lastOffset = stackPos1;
+            } else if (arg2.equals("variable")) {
+                int stackPos2 = this.getPositionInStack(arg1, tableRef);
+                this.body += "lb $t9," + stackPos2 + "($fp)\n";
+                this.body += "sb $t9," + stackPos1 + "($fp)\n";
+                this.lastVariableSize = 1;
+                this.lastOffset = stackPos1;
+            } else if (arg2.equals("Call")) {
+                this.body += "sb $" + arg1 + ", " + stackPos1 + "($fp)" + "\n";
+                this.lastVariableSize = 1;
+                this.lastOffset = stackPos1;
+            }
+        } else if (type.equals("boolean")) {
+            if (arg2.equals("boolean")) {
+                arg1 = this.booleanToByte(arg1) + "";
+                this.body += "li $t9," + "\'" + arg1 + "\'" + "\n";
+                this.body += "sb $t9," + stackPos1 + "($fp)\n";
+                this.lastVariableSize = 1;
+                this.lastOffset = stackPos1;
+            } else if (arg2.equals("variable")) {
+                int stackPos2 = this.getPositionInStack(arg1, tableRef);
+                this.body += "lb $t9," + stackPos2 + "($fp)\n";
+                this.body += "sb $t9," + stackPos1 + "($fp)\n";
+                this.lastVariableSize = 1;
+                this.lastOffset = stackPos1;
+            } else if (arg2.equals("Call")) {
+                this.body += "sb $" + arg1 + ", " + stackPos1 + "($fp)" + "\n";
+                this.lastVariableSize = 1;
+                this.lastOffset = stackPos1;
+            }
+        }
+    }
+
+    public int booleanToByte(String value) {
+        if (value.equals("true")) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+
+    public String byteToBoolean(String number) {
+        if (number.equals("1")) {
+            return "true";
+        } else {
+            return "false";
+        }
+    }
+
+    public int getPositionInStack(String id, int tableRef) {
+        int stackPos = getStackBeginning(tableRef);
+        int offset = this.getOffset(id, tableRef);
+        if (this.temporalRow.isParameter) {
+            stackPos = 8;
+        }
+        stackPos += offset;
+        stackPos *= -1;
+        return stackPos;
+    }
+
+    public int getOffset(String id, int tableRef) {
+        int offset = -1;
+        this.getTableByID(this.symbolTables.root, this.symbolTables.root.getLefterSon(), tableRef);
+        Row row = this.getRowById(this.node, id);
+        this.temporalRow = row;
+        offset = row.offset;
+        return offset;
+    }
+
+    public int getStackBeginning(int tableRef) {
+        return this.begin + this.currentBegin;
+    }
+
+    public int getParametersSize() {
+        int size = 0;
+        SymbolTable table = this.getTableFromNode(this.node);
+
+        for (int i = 0; i < table.list.size(); i++) {
+            if (table.list.get(i).isParameter) {
+                size += this.getTypeSize(table.list.get(i).type);
+            }
+        }
+        return size;
+    }
+
+    public void generateASM(String name) {
+        this.createTemps();
+        this.generateFinalCode();
+        this.code = this.body + this.data;
+        FileWriter fichero = null;
+        PrintWriter pw = null;
+        try {
+            fichero = new FileWriter("./" + name + ".asm");
+            pw = new PrintWriter(fichero);
+            pw.println(this.code);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (null != fichero) {
+                    fichero.close();
+                }
+            } catch (Exception e2) {
+                e2.printStackTrace();
+            }
+        }
+    }
+
+    public void createTemps() {
+        for (int i = 7; i >= 0; i--) {
+            this.tempStack.push("$t" + i);
+        }
+    }
+
     /**
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
+        /* Set the imbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
@@ -1662,4 +2507,21 @@ public class Tree extends javax.swing.JFrame {
     IntermediateTable cuadruplos = new IntermediateTable();
     String globalTag = "main";
     boolean hasSemanticErrors = false;
+    int blockID = 0;
+    int currentID = 0;
+    String code = "";
+    String data = ".data\n";
+    String body = ".text\n" + ".globl main\n" + "main:\n";
+    int offset = 0, paramsOffset = 0;
+    Stack<Integer> offsetStack = new Stack<Integer>();
+    Stack<String> tempStack = new Stack<String>();
+    Stack<String> busyTempStack = new Stack<String>();
+    Row temporalRow = new Row();
+    int stringCounter = 0;
+    int paramCounter = 0;
+    String currentF_ETIQ = "";
+    int lastOffset = 0, lastVariableSize = 0, amount = 0;
+    int currentBegin = 0, begin = 8;
+    boolean isFirst = true, isFirstParam = true;
+    String currentFunction = "main";
 }
