@@ -3,8 +3,11 @@ main(){
 	int numero2:= numero + numero * numero * numero;
 	numero2:= numero + numero * numero * numero;
 	numero2:= numero + numero * numero * numero;
+	write('numero: ');
 	write(numero);
+	write('Numero: ');
 	write(numero2);
+	write('cheque');
 	return 1;
 }
 

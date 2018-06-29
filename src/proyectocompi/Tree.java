@@ -2192,11 +2192,33 @@ public class Tree extends javax.swing.JFrame {
             this.body += "li $a0,\'" + arg1 + "\'\n";
             this.body += "syscall\n";
         } else if (type.equals("string")) {
-            this.data += "_msg" + this.stringCounter + ": .asciiz \"" + arg1 + "\"\n";
-            this.body += "li $v0, 4\n";
-            this.body += "la $a0," + "_msg" + this.stringCounter + "\n";
-            this.body += "syscall\n";
-            this.stringCounter++;
+            if (mensajes.isEmpty()) {
+                this.data += "_msg" + this.stringCounter + ": .asciiz \"" + arg1 + "\"\n";
+                this.body += "li $v0, 4\n";
+                this.body += "la $a0," + "_msg" + this.stringCounter + "\n";
+                this.body += "syscall\n";
+                nombreMensajes.add("_msg" + this.stringCounter);
+                mensajes.add(arg1);
+                this.stringCounter++;
+            }else{
+                for (int i = 0; i < mensajes.size(); i++) {
+                    if (mensajes.get(i).equalsIgnoreCase(arg1)) {
+                        this.body += "li $v0, 4\n";
+                        this.body += "la $a0," + nombreMensajes.get(i) + "\n";
+                        this.body += "syscall\n";
+                    }else{
+                        this.data += "_msg" + this.stringCounter + ": .asciiz \"" + arg1 + "\"\n";
+                        this.body += "li $v0, 4\n";
+                        this.body += "la $a0," + "_msg" + this.stringCounter + "\n";
+                        this.body += "syscall\n";
+                        nombreMensajes.add("_msg" + this.stringCounter);
+                        mensajes.add(arg1);
+                        this.stringCounter++;
+                    }
+                }
+            }
+            
+            
         } else if (type.equals("ArrayElement")) {
             this.body += "li $v0,1\n";
             this.body += "move $a0,$" + arg1 + "\n";
@@ -2585,4 +2607,6 @@ public class Tree extends javax.swing.JFrame {
     int currentBegin = 0, begin = 8;
     boolean isFirst = true, isFirstParam = true;
     String currentFunction = "main";
+    ArrayList<String> nombreMensajes = new ArrayList();
+    ArrayList<String> mensajes = new ArrayList();
 }
